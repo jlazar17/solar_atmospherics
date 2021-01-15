@@ -1,0 +1,11 @@
+This folder contains fluxes produced in the solar atmosphere before propagation through the sun or to the Earth.
+
+Each directoy corresponds to a shower model, and each has fluxes calculated for several impact factors.
+
+The format of each file is:
+
+Energy   nu_e_flux   nu_mu_flux   nu_tau_flux    antinu_e_flux   antinu_mu_flux   antinu_tau_flux
+
+Energies in GeV and fluxes in GeV^-1 cm^-2 s^-1 sr^-1 
+
+Plots can be found in the Plots folder
