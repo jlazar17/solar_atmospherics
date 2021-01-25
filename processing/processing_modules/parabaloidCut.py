@@ -1,4 +1,5 @@
 from selector import selector
+from icecube import dataclasses
 
 @selector
 def parabaloidCut(frame):

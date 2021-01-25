@@ -1,4 +1,5 @@
 from selector import selector
+from I3Tray import NaN
 from icecube import icetray
 import numpy as np
 

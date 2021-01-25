@@ -1,7 +1,9 @@
 from selector import selector
+from I3Tray import NaN
 from splitFrames import splitFrames
 from afterpulses import afterpulses
-from icecube import icetray
+from doExpensiveRecos import doExpensiveRecos
+from icecube import icetray, dataclasses
 import numpy as np
 
 def planL3Cut(frame):

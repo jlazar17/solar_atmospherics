@@ -1,4 +1,5 @@
 from icecube import dataclasses
+from I3Tray import NaN
 # Find the muon we will use for weighting
 def getWeightingCandidate(frame):
     WeightingCandidatesThisRound=0
@@ -10,6 +11,6 @@ def getWeightingCandidate(frame):
         if(WeightingCandidatesThisRound==1):
             frame.Put("WeightingMuon",dataclasses.I3Particle(Candidate))
         else:
-            print "Warning! Multiple weighting candidates found! Storing none of them"
-            print "This is fine for NuGen, NuFSGen shouldn't see this message Since there is always only one muon."
+            print("Warning! Multiple weighting candidates found! Storing none of them")
+            print("This is fine for NuGen, NuFSGen shouldn't see this message Since there is always only one muon.")
 

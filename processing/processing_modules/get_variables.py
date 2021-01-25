@@ -46,13 +46,11 @@ def get_variables(frame):
 
         else:
             LWevent                                             = LW.Event()
-            EventProperties                             = frame['EventProperties']
-            LeptonInjectorProperties            = frame['LeptonInjectorProperties']
-            LWevent.primary_type                        = LW.ParticleType(EventProperties.initialType)
+            EventProperties                             = frame['I3MCWeightDict']
+            #LeptonInjectorProperties            = frame['LeptonInjectorProperties']
+            LWevent.primary_type                        = LW.ParticleType(EventProperties[])
             LWevent.final_state_particle_0      = LW.ParticleType(EventProperties.finalType1)
             LWevent.final_state_particle_1      = LW.ParticleType(EventProperties.finalType2)
-            frame.Put('PassedMuon', dataclasses.I3Double(float(bool(frame['QFilterMask']['MuonFilter_13'].prescale_passed and frame['QFilterMask']['MuonFilter_13'].condition_passed ))))
-            frame.Put('PassedLowUp', dataclasses.I3Double(float(bool(frame['QFilterMask']['LowUp_13'].prescale_passed and frame['QFilterMask']['LowUp_13'].condition_passed ))))
             frame.Put("PrimaryType"                     ,dataclasses.I3Double(LW.ParticleType(EventProperties.initialType)))
             frame.Put("FinalType0"                      ,dataclasses.I3Double(LW.ParticleType(EventProperties.finalType1)))
             frame.Put("FinalType1"                      ,dataclasses.I3Double(LW.ParticleType(EventProperties.finalType2)))

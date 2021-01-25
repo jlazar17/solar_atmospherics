@@ -1,6 +1,8 @@
 from final_selection import finalSample
-from icecube import VHESelfVeto
+from icecube import VHESelfVeto, dataclasses
+from icecube.icetray import I3Units
 from is_simulation import is_simulation
+import numpy as np
 
 def _FindDetectorVolumeIntersections(recoParticle, geometry):
     intersectionPoints = VHESelfVeto.IntersectionsWithInstrumentedVolume(geometry, recoParticle)
@@ -11,10 +13,10 @@ def _FindDetectorVolumeIntersections(recoParticle, geometry):
         vecZ = intersectionPoint.z - recoParticle.pos.z
 
         prod = vecX*recoParticle.dir.x + vecY*recoParticle.dir.y + vecZ*recoParticle.dir.z
-        dist = math.sqrt(vecX**2 + vecY**2 + vecZ**2)
+        dist = np.sqrt(vecX**2 + vecY**2 + vecZ**2)
         if prod < 0.: dist *= -1.
 
-        if abs(prod-dist) > 1e-3*icetray.I3Units.m:
+        if abs(prod-dist) > 1e-3*I3Units.m:
             raise RuntimeError("intersection points are not on track")
 
         intersectionTimes.append(dist/dataclasses.I3Constants.c + recoParticle.time)

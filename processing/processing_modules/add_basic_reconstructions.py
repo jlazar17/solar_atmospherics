@@ -1,4 +1,5 @@
 from icecube import lilliput, linefit
+from selectFinalFit import selectFinalFit
 
 def add_basic_reconstructions(tray,suffix,pulses,condition):
     tray.AddSegment(linefit.simple,"LineFit"+suffix,
@@ -28,3 +29,5 @@ def add_basic_reconstructions(tray,suffix,pulses,condition):
         pulses=pulses,
         seeds=["SPEFit4"+suffix],
         )
+
+    tray.AddModule(selectFinalFit,"FinalFit")

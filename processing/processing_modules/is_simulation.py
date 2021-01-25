@@ -4,5 +4,5 @@ from selector import selector
 @selector
 def is_simulation(frame):
     if frame.Has("I3MCTree") or frame.Has("I3MCTree_preMuonProp"):
-	return True
+        return True
 

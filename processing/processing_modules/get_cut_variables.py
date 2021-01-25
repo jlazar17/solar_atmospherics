@@ -2,6 +2,7 @@ from icecube.icetray import I3Units
 from icecube import dataclasses
 from icecube.common_variables import direct_hits
 from icecube.common_variables import hit_multiplicity
+from icecube.common_variables import track_characteristics
 
 def get_cut_variables(frame):
     if frame.Has('TTPulses') and frame.Has('TrackFit'):

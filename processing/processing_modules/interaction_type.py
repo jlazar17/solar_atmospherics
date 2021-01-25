@@ -1,9 +1,16 @@
-def interaction_type(frame):
+from final_selection import finalSample
+from is_simulation import is_simulation
+from icecube import dataclasses
+from isNeutrinoType import isNeutrinoType
+from isChargedLepton import isChargedLepton
+from I3Tray import NaN
+
+def interaction_type(frame, infile):
     if not (finalSample & is_simulation)(frame):
         return
     mcTree = frame['I3MCTree']
     
-    if 'NuFSGen' in options.infile:
+    if 'NuFSGen' in infile:
         # for NuFSGen, the neutrino is the primary. There is no background.
         neutrino = dataclasses.get_most_energetic_primary(mcTree)
     else:

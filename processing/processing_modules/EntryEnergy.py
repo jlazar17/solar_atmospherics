@@ -1,4 +1,5 @@
 from final_selection import finalSample
+from I3Tray import NaN
 from icecube import dataclasses
 from is_simulation import is_simulation
 def EntryEnergy(frame):
