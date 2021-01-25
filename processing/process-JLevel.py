@@ -54,7 +54,7 @@ from goodFit import goodFit
 from findHighChargeDOMs import findHighChargeDOMs
 from renameMCTree import renameMCTree
 from dumbOMSelection import dumbOMSelection
-from controls import outkeys, i3streams, dh_definitions, stConfigService, delkeys, deepCoreStrings
+from controls import i3streams, dh_definitions, stConfigService, delkeys, deepCoreStrings
 from ComputeChargeWeightedDist import ComputeChargeWeightedDist
 from final_selection import finalSample
 load("bayesian-priors")

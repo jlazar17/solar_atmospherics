@@ -3,7 +3,7 @@ from icecube import dataclasses
 fit_params = ['LineFit_TTParams', 'SPEFitSingle_TTFitParams', 'SPEFit4_TTFitParams', 'MPEFit_TTFitParams']
 fits = ['MPEFit_TT', 'SPEFit4_TT']
 
-def RenameOutVars(frame):
+def RenameNuOutVars(frame, isCORSIKA):
     for param in fit_params[::-1]:
         if (frame.Has(param) and not frame.Has('RLogL')):
             frame.Put('RLogL', dataclasses.I3Double(frame[param].rlogl))
@@ -31,8 +31,8 @@ def RenameOutVars(frame):
     keys_dict = {'NuEnergy'    : frame['NuEnergy'].value,
                  'NuZenith'    : frame['NuZenith'].value,
                  'NuAzimuth'   : frame['NuAzimuth'].value,
-                 'RecoZenith'    : frame['RecoZenith'].value,
-                 'RecoAzimuth'   : frame['RecoAzimuth'].value,
+                 'RecoZenith'   : frame['RecoZenith'].value,
+                 'RecoAzimuth'  : frame['RecoAzimuth'].value,
                  'PrimaryType' : frame['PrimaryType'].value,
                  'oneweight'   : frame['oneweight'].value,
                  'ZTravel'     : frame['ZTravel'].value,
