@@ -8,7 +8,7 @@ import os
 from os.path import expandvars
 cwd = os.getcwd()
 
-moduledir= cwd+'/processing_modules/'
+moduledir= '/data/user/jlazar/solar_atmospherics/processing/processing_modules/'
 if moduledir not in sys.path:
     sys.path.append(moduledir)
 
@@ -18,13 +18,19 @@ from icecube import wavedeform, TopologicalSplitter,WaveCalibrator, VHESelfVeto
 from icecube.icetray import I3Units
 
 from get_pulse_names import get_pulse_names
-from isLowUpOnly import isLowUpOnly
-from isMuonFilter import isMuonFilter
+from is_lowup import IsLowUp
+from isMuonFilter import IsMuonFilter
 from overburden import overburden
 from outer_charge import outer_charge
-from is_simulation import is_simulation
+from rename_out_vars import RenameOutVars
+#from is_simulation import is_simulation
+from compute_hit_statistics import ComputeHitStatistics
+from interaction_type import interaction_type
 from hasTWSRTOfflinePulses import hasTWSRTOfflinePulses
 from getWeightingCandidate import getWeightingCandidate
+from finalNeutrino import finalNeutrino
+from doExpensiveRecos import doExpensiveRecos
+from precut import precut
 from fixWeightMap import fixWeightMap
 from get_cut_variables import get_cut_variables
 from get_pulses import get_pulses
@@ -42,7 +48,6 @@ from parabaloidCut import parabaloidCut
 from afterpulses import afterpulses
 from add_paraboloid import add_paraboloid
 from planL3Cut import planL3Cut
-from get_variables import get_variables
 from is_cut_time import is_cut_time
 from true_trackfit import true_trackfit
 from goodFit import goodFit
@@ -62,10 +67,6 @@ from helper_functions import check_write_permissions, parse_boolean, trueconditi
 from initialize_args import initialize_parser
 options, args = initialize_parser()
 
-###### Make sure we can actually write before doing things ######
-if not check_write_permissions(options.outfile):
-    print('You do not have write permission for outdir')
-    sys.exit()
 ###### Get the right ice model ######
 ice_model = options.ice_model
 if ice_model == 'spice_3.2':
@@ -75,12 +76,18 @@ else:
     sys.exit()
 
 ###### Set up all the files ######
-outfile      = options.outfile
-outfile_temp = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/scripts/temp/'+outfile.split('/')[-1]
+
+if not callable(options.outfile): # this means an explicit path is made
+    outfile      = options.outfile
+else:
+    outfile = options.outfile(options.infile)
+###### Make sure we can actually write before doing things ######
+if not check_write_permissions(outfile):
+    print('You do not have write permission for outdir')
+    sys.exit()
 spline_path  = "/data/ana/SterileNeutrino/IC86/HighEnergy/scripts/jobs/paraboloidCorrectionSpline.dat"
 infile       = options.infile
 gcdfile      = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/Systematics/Noise/GeoCalibDetectorStatus_AVG_Fit_55697-57531_SPE_PASS2_Raw.i3.gz' # I do not understand why exactly this is happenin. TODO ask Spencer
-#gcdfile         = options.gcdfile
 infiles      = [gcdfile, infile]
 
 InIcePulses, SRTInIcePulses, SRTInIcePulses_NoDC_Qtot, SRTInIcePulses_NoDC = get_pulse_names(infile)
@@ -93,11 +100,8 @@ tray.AddModule("I3Reader","reader")(("FilenameList",infiles))
 
 exitStatus=RandomStuff.ExitStatus()
 
-if parse_boolean(options.cut):
-    tray.AddModule(is_cut_time)
 tray.AddModule(renameMCTree, "_renameMCTree", Streams=[icetray.I3Frame.DAQ])
-tray.AddModule(isLowUpOnly & hasTWSRTOfflinePulses, "selectValidData") # Mine
-#tray.AddModule(isMuonFilter & hasTWSRTOfflinePulses,"selectValidData")
+tray.AddModule(IsLowUp & ~IsMuonFilter & hasTWSRTOfflinePulses, "selectValidData") # Mine
 tray.AddModule(fixWeightMap,"patchCorsikaWeights")
 tray.AddModule(dumbOMSelection,"NoDeepCore",
                pulses         = SRTInIcePulses,
@@ -106,7 +110,7 @@ tray.AddModule(dumbOMSelection,"NoDeepCore",
                IfCond         = truecondition
               )
 tray.AddModule(ComputeChargeWeightedDist,"CCWD",Pulses=SRTInIcePulses_NoDC,Track="PoleMPEFitName")
-#tray.AddModule(precut,"precut")
+tray.AddModule(precut,"precut")
 tray.AddModule("I3OrphanQDropper","OrphanQDropper")
 tray.AddModule("I3SeededRTCleaning_RecoPulse_Module", "SRTClean",
                InputHitSeriesMapName  = InIcePulses,
@@ -132,99 +136,21 @@ tray.AddModule("AfterPulseSpotter","Afterpulses")(
 tray.AddModule(SamePulseChecker,"SPC")
 add_basic_reconstructions(tray,"_TT","TTPulses",splitFrames & ~afterpulses & ~basicRecosAlreadyDone)
 computeSimpleCutVars(tray,splitFrames & ~afterpulses)
-add_bayesian_reconstruction(tray,"TTPulses",splitFrames & ~afterpulses,"TrackFit")
-add_paraboloid(tray,"TTPulses",splitFrames & ~afterpulses,"TrackFit")
-add_split_reconstructions(tray,"TTPulses",splitFrames & ~afterpulses,"TrackFit")
+add_bayesian_reconstruction(tray,"TTPulses",splitFrames & ~afterpulses & doExpensiveRecos,"TrackFit")
+add_paraboloid(tray,"TTPulses",splitFrames & ~afterpulses & doExpensiveRecos,"TrackFit")
+add_split_reconstructions(tray,"TTPulses",splitFrames & ~afterpulses & doExpensiveRecos,"TrackFit")
 tray.AddModule("ParaboloidSigmaCorrector","extractSigma")(
                      ("CorrectionSplinePath",spline_path),
                      ("ParaboloidParameters","TrackFitParaboloidFitParams"),
                      ("NChanSource",'NChanSource'), # with DeepCore!
                      ("Output","CorrectedParaboloidSigma")
                     )
-#tray.AddModule(planL3Cut,"CutPlanner")
-#=========================DO I NEED THIS???????????==============================
-tray.AddModule("I3MCParticleExtractor","extractMCTruth")(
-        ("StoreLevel",2)
-        )
-#================================================================================
-tray.AddModule("I3WaveformTimeRangeCalculator","WaveformRange", If=lambda frame: not 'CalibratedWaveformRange' in frame)
-tray.AddModule(wavedeform.AddMissingTimeWindow,"PulseTimeRange")
-tray.AddModule(findHighChargeDOMs, "findHighChargeDOMs",
-               pulses = InIcePulses,
-               outputList = "BrightDOMs"
-              )
-tray.AddModule("muex", "muex")(
-                               ("pulses", "TTPulses"),#MuEx does not handle noise, so it should run on cleaned pulses
-                               ("rectrk", "TrackFit"),
-                               ("result", "MuEx"),
-                               ("lcspan", 0),
-                               ("repeat", 0),
-                               ("rectyp", True),
-                               ("usempe", False),
-                               ("detail", False),
-                               ("energy", True),
-                               #("compat", False),#New Addition bug fix
-                               ("icedir", ice_model_location),
-                               ("If",finalSample)
-                              )
-tray.Add(true_trackfit)
-tray.AddModule("FiducialVolumeEntryPointFinder", "findEntryPoints",
-               TopBoundaryWidth=0.,
-               BottomBoundaryWidth=0.,
-               SideBoundaryWidth=0.,
-               AssumeMuonTracksAreInfinite=True,
-               ParticleIntersectionsName="IntersectingParticles",
-               If=is_simulation
-              )
-tray.AddModule(FindDetectorVolumeIntersections, "FindDetectorVolumeIntersections",
-               TimePadding = 60.*I3Units.m/dataclasses.I3Constants.c,
-               TrackName="TrackFit",
-               OutputTimeWindow="ContainedTimeRange"
-              )
-tray.AddModule(EntryEnergy,"EntryEnergy")
-#tray.Add(interaction_type)
-tray.Add(overburden)
-tray.Add(outer_charge)
-tray.Add(get_cut_variables)
-tray.Add(get_pulses)
-tray.AddModule(getWeightingCandidate,"weightingcand")
-finalWithParab=finalSample & parabaloidCut
-tray.AddModule(finalWithParab,"finalSample")
-tray.AddModule('Delete', 'delkeys', Keys = delkeys)
-#tray.AddModule("PacketCutter","Cutter")(
-#                     ("CutStream","TTrigger"),
-#                     ("CutObject","CutL3")
-#                    )
+tray.Add(RenameOutVars)
+tray.AddModule("I3Writer","i3writer")(
+                    ("Filename",outfile),
+                    ("Streams",i3streams)
+                   )
 
-if parse_boolean(options.move):
-    tray.AddModule("I3Writer","i3writer")(
-                        ("Filename",outfile_temp),
-                        ("Streams",i3streams)
-                       )
-    if parse_boolean(options.cut):
-        tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
-                              ("tableservice",hdfwriter.I3HDFTableService(outfile_temp.replace('.i3.bz2','_golden.h5'))),
-                              ("SubEventStreams",["TTrigger"]),
-                              ("keys",outputKeys)
-                             )
-    else:
-        pass
-else:
-    if parse_boolean(options.osg):
-        print('You need options.move to be True if using the OSG')
-    else:
-        tray.AddModule("I3Writer","i3writer")(
-                            ("Filename",outfile),
-                            ("Streams",i3streams)
-                           )
-        if parse_boolean(options.cut):
-            tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
-                                 ("tableservice",hdfwriter.I3HDFTableService(outfile_temp.replace('.i3.bz2','_golden.h5'))),
-                                 ("SubEventStreams",["TTrigger"]),
-                                 ("keys",outputKeys)
-                                )
-        else:
-             pass
 
 if(options.nFrames==0):
         tray.Execute()
