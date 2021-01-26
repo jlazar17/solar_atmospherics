@@ -54,9 +54,14 @@ from goodFit import goodFit
 from findHighChargeDOMs import findHighChargeDOMs
 from renameMCTree import renameMCTree
 from dumbOMSelection import dumbOMSelection
-from controls import i3streams, dh_definitions, stConfigService, delkeys, deepCoreStrings
 from ComputeChargeWeightedDist import ComputeChargeWeightedDist
 from final_selection import finalSample
+from controls import process_params
+i3streams = process_params()['i3streams']
+dh_definitions = process_params()['dh_definitions']
+stConfigService = process_params()['stConfigService']
+deepCoreStrings = process_params()['deepCoreStrings']
+
 load("bayesian-priors")
 load("double-muon")
 load("libmue")
