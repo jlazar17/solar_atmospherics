@@ -1,10 +1,12 @@
-from controls import dh_definitions
+from controls import process_params
 from firstHits import firstHits
 from dumbOMSelection import dumbOMSelection
-from controls import deepCoreStrings
 from ComputeChargeWeightedDist import ComputeChargeWeightedDist
 from icecube.common_variables import hit_multiplicity, direct_hits
 from get_NChan import get_NChan
+
+deepCoreStrings = process_params()['deepCoreStrings']
+dh_definitions  = process_params()['dh_definitions']
 
 def computeSimpleCutVars(tray,condition):
     tray.Add(firstHits,

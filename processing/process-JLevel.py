@@ -26,12 +26,16 @@ from icecube.common_variables import direct_hits
 from icecube.common_variables import hit_multiplicity
 from icecube.common_variables import track_characteristics
 
-from rename_out_vars import RenameOutVars
+module_dir = '/data/user/jlazar/solar_atmospherics/processing/processing_modules/'
+if module_dir not in sys.path:
+    sys.path.append(module_dir)
+from rename_nu_out_vars import RenameNuOutVars
 from get_pulse_names import get_pulse_names
 from initialize_args import initialize_parser
 from is_lowup import IsLowUp
 from renameMCTree import renameMCTree
 from hasTWSRTOfflinePulses import hasTWSRTOfflinePulses
+from cut_high_energy import CutHighEnergy
 from fixWeightMap import fixWeightMap
 from dumbOMSelection import dumbOMSelection
 from ComputeChargeWeightedDist import ComputeChargeWeightedDist
@@ -64,7 +68,20 @@ options,args = initialize_parser()
 gcdfile = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/Systematics/Noise/GeoCalibDetectorStatus_AVG_Fit_55697-57531_SPE_PASS2_Raw.i3.gz'
 
 infile          = options.infile
-outfile         = options.outfile
+if 'CORSIKA' in infile:
+    is_CORSIKA   = True
+    is_lowenergy = True
+else:
+    is_CORSIKA = False
+    if 'GENIE' in infile:
+        is_lowenergy = True
+    else:
+        is_lowenergy = False
+if not callable(options.outfile):
+    outfile = options.outfile
+else:
+    outfile = options.outfile(infile)
+print(outfile)
 osg             = options.osg
 
 if osg == 'True':
@@ -106,7 +123,6 @@ else:
 
         infiles = [gcdfile, infile]
         outfile_temp = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/scripts/temp/'+outfile.split('/')[-1]
-        outfile = options.outfile
         spline_path = "/data/ana/SterileNeutrino/IC86/HighEnergy/scripts/jobs/paraboloidCorrectionSpline.dat"
 
 #====================================
@@ -190,11 +206,12 @@ tray.AddModule("ParaboloidSigmaCorrector","extractSigma")(
                 ("NChanSource",'NChanSource'), # with DeepCore!
                 ("Output","CorrectedParaboloidSigma"),)
 
-tray.Add(RenameOutVars)
+#tray.Add(RenameNuOutVars)
+if is_lowenergy:
+    tray.AddModule(CutHighEnergy, 'HE_cut')
+else:
+    pass
 
-#i3streams = [icetray.I3Frame.DAQ,icetray.I3Frame.Physics,icetray.I3Frame.TrayInfo, icetray.I3Frame.Simulation]
-
-outfile = options.outfile
 outputKeys = ["GenerationSpec",'MuEx']
 
 if options.move == 'True':
@@ -214,6 +231,7 @@ else:
         if osg =='True':
                 print('You need options.move to be True if using the OSG')
         else:
+                print(outfile)
                 tray.AddModule("I3Writer","i3writer")(
                         ("Filename",outfile),
                         ("Streams",i3streams)
@@ -253,5 +271,3 @@ end_time = time.time()
 print("Processing time: "+str(end_time-start_time))
 
 exit(exitStatus.status)
-
-

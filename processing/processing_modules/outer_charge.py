@@ -1,5 +1,8 @@
 from icecube import dataclasses
-from controls import outer_string_list, top_bottom_om_list
+from controls import process_params
+outer_string_list = process_params()['outer_string_list']
+top_bottom_om_list = process_params()['outer_string_list']
+
 def outer_charge(frame):
     if frame.Has('TTPulses'):
         TTpulses = dataclasses.I3RecoPulseSeriesMap.from_frame(frame, 'TTPulses')

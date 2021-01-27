@@ -3,7 +3,7 @@ import os
 def make_outfile_name(infile):
     infile  = infile.replace('=', '').replace('\\', '')
     if 'nancy001' in infile:
-        outdir    = '/data/user/jlazar/solar_atmospherics/processing/data/nancy'
+        outdir    = '/data/user/jlazar/solar_atmospherics/processing/data/nancy/i3'
         nutype    = infile.split('/')[9]
         eregime   = infile.split('/')[10].replace('_', '')
         syst_desc = '-'.join(infile.split('/')[11:13]).replace('_', '').replace('p1','').replace('p2','').replace('.', '')

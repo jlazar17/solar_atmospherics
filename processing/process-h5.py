@@ -12,6 +12,9 @@ from I3Tray import I3Tray
 from icecube import tableio, hdfwriter, icetray, dataclasses
 
 from initialize_args import initialize_parser
+from rename_nu_out_vars import RenameNuOutVars
+from controls import process_params
+i3streams = process_params()['i3streams']
 options, args = initialize_parser()
 
 infiles = [options.gcdfile, options.infile]
@@ -23,11 +26,16 @@ print(h5file)
 
 tray = I3Tray()
 tray.AddModule("I3Reader","reader")(("FilenameList",infiles))
+tray.AddModule(RenameNuOutVars)
 h5outkeys = ['ZTravel', 'oneweight','COGZ', 'COGZSigma', 'NuEnergy', 'NuZenith', 'NuAzimuth', 'PrimaryType', 'RLogL', 'RecoAzimuth', 'RecoZenith']
 tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
         ("tableservice",hdfwriter.I3HDFTableService(h5file)),
-        ("SubEventStreams",["TTrigger"]),
+        ("SubEventStreams",["TTrigger", 'InIceSplit']),
         ("keys",h5outkeys)
+        )
+tray.AddModule("I3Writer","i3writer")(
+        ("Filename",'ahhhhhhhh.i3.zst'),
+        ("Streams",i3streams)
         )
 tray.Execute()
 tray.Finish()

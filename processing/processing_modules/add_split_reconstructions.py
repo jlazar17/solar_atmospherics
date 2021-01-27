@@ -5,7 +5,8 @@ from icecube import linefit
 from firstHits import firstHits
 from I3Tray import load
 
-from controls import dh_definitions
+from controls import process_params
+dh_definitions = process_params()['dh_definitions']
 
 load("double-muon")
 
