@@ -5,6 +5,8 @@ from opening_angle import opening_angle
 from base_mc_fluxmaker import BaseMCFluxmaker
 from wimp_flux_calculator import WIMPFluxCalculator
 from controls import fluxmaker_params
+import solar_position_calc as sc
+fluxmaker_params = fluxmaker_params()
 
 class WIMPMCFluxmaker(BaseMCFluxmaker):
     
@@ -13,7 +15,7 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
         self.mass = int(self.fluxpath.split('/')[-1].split('_')[0].split('m')[-1])
         wfc = WIMPFluxCalculator(fluxpath, self.mass)
         wfc.initialize_nuSQuIDS()
-        self.dndz = np.array([wfc.get_flux(cz, e, ptype) for cz, e, ptype in zip(np.cos(self.mc.nu_zen),
+        self.dndz = np.array([wfc.get_flux(cz, e, ptype) for cz, e, ptype in zip(np.array(np.cos(self.mc.nu_zen),np.float64),
                                                                                  self.mc.nu_e,
                                                                                  self.mc.ptype
                                                                                 )
@@ -35,7 +37,6 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
         m12               = np.logical_and(m1, m2)
         m                 = np.logical_and(m12, m3)
         nu_gamma          = np.where(m, opening_angle(self.mc.nu_zen, self.mc.nu_az, zen, az), 1)
-        reco_gamma        = np.where(m, opening_angle(self.mc.reco_zen, self.mc.reco_az, zen, az), 0)
         
         n = np.where(nu_gamma <= gamma_cut,
                      self.dndz *             \
@@ -47,3 +48,18 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
                      0
                     )
         return n
+    
+    def do_calc(self):
+        flux = np.zeros(len(self.dndz))
+        for az, jd in zip(fluxmaker_params['azimuths'], fluxmaker_params['jds']):
+            x    = sc.nParameter(jd)
+            obl  = sc.solarObliquity(x)
+            L    = sc.L(x)
+            G    = sc.g(x)
+            lamb = sc.solarLambda(L,G)
+            rad  = sc.solarR(G)
+            zen  = sc.equatorialZenith(obl, lamb)
+
+            flux += self.calc_flux(rad, zen, az)
+            
+        self.flux = np.divide(flux, len(fluxmaker_params['jds'])) # returns a rate

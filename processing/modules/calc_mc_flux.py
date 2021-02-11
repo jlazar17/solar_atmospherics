@@ -1,9 +1,10 @@
 import numpy as np
-from mc_reader import MCReader
 
 import sys
-sys.path.append('/data/user/jlazar/solar_WIMP_v2/modules/')
+sys.path.append('./modules/')
+sys.path.append('/data/user/jlazar/charon/charon/')
 
+from mc_reader import MCReader
 
 def initialize_args():
     import argparse
@@ -12,34 +13,34 @@ def initialize_args():
                         type=str,
                         help='path to mcpath to be used'
                        )
-    parser.add_argument('--fluxtype',
+    parser.add_argument('--flux',
                         type=str,
-                        help='fluxtype to be used, e.g. conv-numu or ch5-m1000'
+                        help='flux to be used, e.g. conv-atm or ch5-m1000'
                        )
     parser.add_argument('-o', type=str)
     args = parser.parse_args()
     return args
 
-def create_mc_fluxmaker(mcpath, fluxtype):
-    if fluxtype=='conv-numu':
+def create_mc_fluxmaker(mcpath, flux):
+    if flux=='conv-atm':
         from convnumu_mc_fluxmaker import ConvNumuMCFluxMaker
-        fluxmaker = ConvNumuMCFluxMaker(mcpath, fluxtype)
-    elif fluxtype=='solar-atm':
+        fluxmaker = ConvNumuMCFluxMaker(mcpath, flux)
+    elif flux=='solar-atm':
         from solaratm_mc_fluxmaker import SolarAtmMCFluxMaker
-        fluxmaker = SolarAtmMCFluxMaker(mcpath, fluxtype)
+        fluxmaker = SolarAtmMCFluxMaker(mcpath, flux)
     else:
-        from signal_mc_fluxmaker import SignalMCFluxMaker
-        fluxmaker = SignalMCFluxMaker(mcpath, fluxtype)
+        from wimp_mc_fluxmaker import WIMPMCFluxmaker
+        fluxmaker = WIMPMCFluxmaker(mcpath, flux)
     return fluxmaker
 
-def main(mcpath, fluxtype, outfile):
+def main(mcpath, flux, outfile):
     mc = MCReader(mcpath)
-    fluxmaker = create_mc_fluxmaker(mc, fluxtype)
-    fluxmaker.initialize_nuSQuIDS()
-    fluxmaker.interp_mc()
+    fluxmaker = create_mc_fluxmaker(mc, flux)
+    #fluxmaker.initialize_nuSQuIDS()
+    fluxmaker.do_calc()
     
     np.save(outfile, fluxmaker.mcflux)
 
 if __name__=='__main__':
     args      = initialize_args()
-    main(args.mcpath, args.fluxtype, args.o)
+    main(args.mcpath, args.flux, args.o)

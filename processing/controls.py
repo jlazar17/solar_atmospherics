@@ -53,6 +53,33 @@ def process_params():
              }
     return params
 
+def weighting_params():
+    params  = {}
+    nevents = {
+              ('nancy', 'low') : 50000.0,
+              ('nancy', 'medium') : 10000.0,
+              'genie' : 50000.0
+             }
+    descs = [
+             ('ZTravel',       '<i8'),
+             ('oneweight',     '<i8'),
+             ('COGZ',          '<i8'),
+             ('COGZSigma',     '<i8'),
+             ('TrueEnergy',    '<i8'),
+             ('TrueZenith',    '<i8'),
+             ('TrueAzimuth',   '<i8'),
+             ('PrimaryType',   '<i8'),
+             ('RLogL',         '<i8'),
+             ('RecoAzimuth',   '<i8'),
+             ('RecoZenith',    '<i8'),
+             ('QTot',          '<i8'),
+             #('RecoEnergy',    '<i8'),
+             ('eff_oneweight', '<i8'),
+            ]
+    params['nevents'] = nevents
+    params['descs'] = descs
+    return params
+
 def fluxmaker_params():
 
     start = 2455349.5
