@@ -3,8 +3,6 @@ import h5py
 from os import path
 
 
-
-
 class MCReader():
 
     def __init__(self, mcpath, slc=slice(None), options='00'):
@@ -18,7 +16,8 @@ class MCReader():
             self.num_files = float(mcpath.split('_')[-1][:-3])/5.
             self.h5f = h5py.File(mcpath, "r")
         elif self.event_selection=='LowUp':
-            self.num_files = float(mcpath.split('_')[-1][:-3])/5.
+            #self.num_files = float(mcpath.split('_')[-1][:-3])/5.
+            self.num_files = 1.0
             self.h5f = h5py.File(mcpath, "r")
         elif self.event_selection=='PSTracks':
             self.h5f = np.load(self.mcpath)
@@ -48,7 +47,7 @@ class MCReader():
             quit()
 
     def set_mc_quantities(self):
-        if (self.event_selection=='MEOWS') or (self.event_selection=='LowUp'):
+        if (self.event_selection=='MEOWS'):
             self.nu_e = self.h5f["NuEnergy"][()][self.slc]
             if self._scramble:
                 delta_az = np.random.rand(len(self.nu_e))*2*np.pi
@@ -67,6 +66,26 @@ class MCReader():
                 self.reco_az = np.mod(reco_az[self.slc]+delta_az,2*np.pi)
                 self.reco_zen = reco_zen[self.slc]
             self.oneweight = self.h5f["oneweight"][()][self.slc]/self.num_files
+            self.ptype = self.h5f['PrimaryType'][()]
+        if (self.event_selection=='LowUp'):
+            self.nu_e = self.h5f["TrueEnergy"][()][self.slc]
+            if self._scramble:
+                delta_az = np.random.rand(len(self.nu_e))*2*np.pi
+            else:
+                delta_az = np.zeros(len(self.nu_e))
+            self.nu_zen    = self.h5f["TrueZenith"][()][self.slc]
+            self.nu_az     = self.h5f["TrueAzimuth"][()][self.slc]
+            #self.reco_e    = self.h5f["MuExEnergy"][()][self.slc]
+            if not self._rescale:
+                self.reco_zen  = self.h5f["RecoZenith"][()][self.slc]
+                _ = self.h5f["RecoAzimuth"][()][self.slc]
+                self.reco_az   = np.mod(_+delta_az, 2*np.pi)
+            else:
+                from gen_rescale_az_zen import gen_new_zen_az
+                reco_az, reco_zen = gen_new_zen_az(self.h5f["TrueEnergy"][()])
+                self.reco_az = np.mod(reco_az[self.slc]+delta_az,2*np.pi)
+                self.reco_zen = reco_zen[self.slc]
+            self.oneweight = self.h5f["eff_oneweight"][()][self.slc]/self.num_files
             self.ptype = self.h5f['PrimaryType'][()]
         elif (self.event_selection=='PSTracks'):
             self.nu_e      = self.h5f['trueE'][self.slc]
@@ -120,6 +139,16 @@ class MCReader():
                 self.oneweight[slc] = self.h5f[key]['I3MCWeightDict.OneWeight'][()] / (self.h5f[key]['I3MCWeightDict.NEvents'][()] * self.h5f[key]['I3MCWeightDict.gen_ratio'][()])
                 self.ptype[slc] = self.h5f[key]['MCInIcePrimary.pdg_encoding'][()]
             self.reco_az +=delta_az
+        elif self.event_selection=='JLevel':
+            self.nu_e = self.h5f["NuEnergy"][()][self.slc]
+            self.nu_zen    = self.h5f["NuZenith"][()][self.slc]
+            self.nu_az     = self.h5f["NuAzimuth"][()][self.slc]
+            #self.reco_e    = self.h5f["MuExEnergy"][()][self.slc]
+            self.reco_zen  = self.h5f["RecoZenith"][()][self.slc]
+            self.reco_az   = self.h5f["RecoAzimuth"][()][self.slc]
+            self.oneweight = self.h5f["eff_oneweight"][()][self.slc]/self.num_files
+            self.ptype = self.h5f['PrimaryType'][()]
+            
 
         
     def set_oneweight(self):

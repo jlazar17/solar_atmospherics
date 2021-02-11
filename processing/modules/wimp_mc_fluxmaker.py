@@ -62,4 +62,4 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
 
             flux += self.calc_flux(rad, zen, az)
             
-        self.flux = np.divide(flux, len(fluxmaker_params['jds'])) # returns a rate
+        self.mcflux = np.divide(flux, len(fluxmaker_params['jds'])) # returns a rate

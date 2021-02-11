@@ -19,5 +19,4 @@ def IsLowUp(frame):
         passed_lowup = (lowup_filter.condition_passed and lowup_filter.prescale_passed)
     else:
         print("There is a problem! If none of the above exists, you are in the future. Hihao.")
-    #return (passed_lowup and not passed_dc)
     return passed_lowup
