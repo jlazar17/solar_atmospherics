@@ -29,7 +29,7 @@ from icecube.common_variables import track_characteristics
 module_dir = '/data/user/jlazar/solar_atmospherics/processing/processing_modules/'
 if module_dir not in sys.path:
     sys.path.append(module_dir)
-from rename_nu_out_vars import RenameNuOutVars
+from cut_high_energy import CutHighEnergy
 from get_pulse_names import get_pulse_names
 from initialize_args import initialize_parser
 from is_lowup import IsLowUp
@@ -65,23 +65,30 @@ load('MCParticleExtractor')
 start_time = time.time()
 print("Starting ...")
 options,args = initialize_parser()
-gcdfile = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/Systematics/Noise/GeoCalibDetectorStatus_AVG_Fit_55697-57531_SPE_PASS2_Raw.i3.gz'
 
 infile          = options.infile
-if 'CORSIKA' in infile:
-    is_CORSIKA   = True
-    is_lowenergy = True
+if 'corsika' in infile:
+    filetype     = 'corsika'
 else:
-    is_CORSIKA = False
-    if 'GENIE' in infile:
-        is_lowenergy = True
+    if 'genie' in infile:
+        filetype = 'genie'
     else:
-        is_lowenergy = False
+        filetype     = 'nancy'
+    
+if filetype=='nancy':
+    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
+elif filetype=='genie':
+    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
+elif filetype=='corsika':
+    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz'
+
+    
 if not callable(options.outfile):
     outfile = options.outfile
 else:
     outfile = options.outfile(infile)
-print(outfile)
+outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
+
 osg             = options.osg
 
 if osg == 'True':
@@ -136,6 +143,10 @@ tray.AddModule("I3Reader","reader")(
 
 exitStatus=RandomStuff.ExitStatus()
 
+# Remove high energy portion from GENIE simulation to make sure simulation is non-overlapping
+if filetype=='genie':
+    print('cutting high energy')
+    tray.AddModule(CutHighEnergy)
 tray.AddModule(renameMCTree, "_renameMCTree", Streams=[icetray.I3Frame.DAQ])
 
 tray.AddModule(IsLowUp & ~IsMuonFilter & hasTWSRTOfflinePulses,"selectValidData")
@@ -206,12 +217,6 @@ tray.AddModule("ParaboloidSigmaCorrector","extractSigma")(
                 ("NChanSource",'NChanSource'), # with DeepCore!
                 ("Output","CorrectedParaboloidSigma"),)
 
-#tray.Add(RenameNuOutVars)
-if is_lowenergy:
-    tray.AddModule(CutHighEnergy, 'HE_cut')
-else:
-    pass
-
 outputKeys = ["GenerationSpec",'MuEx']
 
 if options.move == 'True':
@@ -231,7 +236,6 @@ else:
         if osg =='True':
                 print('You need options.move to be True if using the OSG')
         else:
-                print(outfile)
                 tray.AddModule("I3Writer","i3writer")(
                         ("Filename",outfile),
                         ("Streams",i3streams)
