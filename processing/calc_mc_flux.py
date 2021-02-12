@@ -26,8 +26,8 @@ def create_mc_fluxmaker(mcpath, flux):
         from convnumu_mc_fluxmaker import ConvNumuMCFluxMaker
         fluxmaker = ConvNumuMCFluxMaker(mcpath, flux)
     elif flux=='solar-atm':
-        from solaratm_mc_fluxmaker import SolarAtmMCFluxMaker
-        fluxmaker = SolarAtmMCFluxMaker(mcpath, flux)
+        from solar_mc_fluxmaker import SolarMCFluxmaker
+        fluxmaker = SolarMCFluxmaker(mcpath, flux)
     else:
         fluxpath = '/data/user/jlazar/solar_WIMP_v2/data/charon_fluxes/%s_1AU_BRW.npy' % flux
         from wimp_mc_fluxmaker import WIMPMCFluxmaker
@@ -54,4 +54,4 @@ if __name__=='__main__':
     else:
         outfile = args.o
     print(args.o)
-    main(args.mcpath, args.flux, args.o)
+    main(args.mcpath, args.flux, outfile)
