@@ -17,7 +17,7 @@ def initialize_args():
                         type=str,
                         help='flux to be used, e.g. conv-atm or ch5-m1000'
                        )
-    parser.add_argument('-o', type=str)
+    parser.add_argument('-o', type=str, default='')
     args = parser.parse_args()
     return args
 
@@ -29,8 +29,9 @@ def create_mc_fluxmaker(mcpath, flux):
         from solaratm_mc_fluxmaker import SolarAtmMCFluxMaker
         fluxmaker = SolarAtmMCFluxMaker(mcpath, flux)
     else:
+        fluxpath = '/data/user/jlazar/solar_WIMP_v2/data/charon_fluxes/%s_1AU_BRW.npy' % flux
         from wimp_mc_fluxmaker import WIMPMCFluxmaker
-        fluxmaker = WIMPMCFluxmaker(mcpath, flux)
+        fluxmaker = WIMPMCFluxmaker(mcpath, fluxpath)
     return fluxmaker
 
 def main(mcpath, flux, outfile):
@@ -43,4 +44,14 @@ def main(mcpath, flux, outfile):
 
 if __name__=='__main__':
     args      = initialize_args()
+    if args.o=='':
+        default_outdir  = '/data/user/jlazar/solar_atmospherics/data/mc_fluxes/'
+        import os
+        if not os.path.isdir(default_outdir):
+            os.makedirs(default_outdir)
+        mcname  = args.mcpath.split('/')[-1].split('.')[0]
+        outfile = '%s/%s_%s.npy' % (default_outdir, args.flux, mcname)
+    else:
+        outfile = args.o
+    print(args.o)
     main(args.mcpath, args.flux, args.o)
