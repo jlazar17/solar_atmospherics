@@ -1,7 +1,8 @@
 import numpy as np
 
-from controls import fluxmaker_params
 import solar_position_calc as sc
+from controls import fluxmaker_params
+params = fluxmaker_params()
 
 class BaseMCFluxmaker():
     
@@ -15,7 +16,7 @@ class BaseMCFluxmaker():
     
     def do_calc(self):
         avg_flux = np.zeros(len(self.mc.oneweight))
-        for az, jd in zip(fluxmaker_params['azimuths'], fluxmaker_params['jds']):
+        for az, jd in zip(params['azimuths'], params['jds']):
             x      = sc.nParameter(jd)
             obl    = sc.solarObliquity(x)
             L      = sc.L(x)
@@ -26,4 +27,4 @@ class BaseMCFluxmaker():
 
             avg_flux += self.calc_flux(rad, zenith, az)
             
-        self.avg_flux = np.divide(avg_flux, len(fluxmaker_params['jds'])) # returns a rate
+        self.avg_flux = np.divide(avg_flux, len(params['jds'])) # returns a rate

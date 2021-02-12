@@ -6,7 +6,7 @@ from base_mc_fluxmaker import BaseMCFluxmaker
 from wimp_flux_calculator import WIMPFluxCalculator
 from controls import fluxmaker_params
 import solar_position_calc as sc
-fluxmaker_params = fluxmaker_params()
+params = fluxmaker_params()
 
 class WIMPMCFluxmaker(BaseMCFluxmaker):
     
@@ -24,8 +24,8 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
         self.rate = DMAnnihilationJungmanSD(self.mass, 1.0e-39) # Annihlation rate for xs=1 femtobarn
 
     def calc_flux(self, rad, zen, az):
-        solar_solid_angle = 2*np.pi*(1-np.cos(fluxmaker_params['r_sun']/rad))
-        gamma_cut         = np.arctan(fluxmaker_params['r_sun'] / rad)
+        solar_solid_angle = 2*np.pi*(1-np.cos(params['r_sun']/rad))
+        gamma_cut         = np.arctan(params['r_sun'] / rad)
         zmax              = zen+gamma_cut
         zmin              = zen-gamma_cut
         amax              = az+gamma_cut
@@ -51,7 +51,7 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
     
     def do_calc(self):
         flux = np.zeros(len(self.dndz))
-        for az, jd in zip(fluxmaker_params['azimuths'], fluxmaker_params['jds']):
+        for az, jd in zip(params['azimuths'], params['jds']):
             x    = sc.nParameter(jd)
             obl  = sc.solarObliquity(x)
             L    = sc.L(x)
@@ -62,4 +62,4 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
 
             flux += self.calc_flux(rad, zen, az)
             
-        self.mcflux = np.divide(flux, len(fluxmaker_params['jds'])) # returns a rate
+        self.mcflux = np.divide(flux, len(params['jds'])) # returns a rate
