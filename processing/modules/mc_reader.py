@@ -1,173 +1,207 @@
 import numpy as np
-import h5py
+import h5py as h5
 from os import path
 
+from controls import oscNext_nfiles
+from helper_functions import mc_fname
+
+params = {'oscNext' : ('oscNext',  
+                       lambda path: h5.File(path, 'r'),
+                       [('true_e',      '<f8'),
+                        ('true_zen',    '<f8'),
+                        ('true_az',     '<f8'),
+                        ('reco_e',      '<f8'),
+                        ('reco_zen',    '<f8'),
+                        ('reco_az',     '<f8'),
+                        ('oneweight',   '<f8'),
+                        ('ptype',       '<i8'),
+                        ('trackprob',   '<f8'),
+                        ('rweight',     '<f8'),
+                        ('passed_muon', '<i8'),
+                        ('pass_lowup',  '<i8'),
+                       ]
+                      ),
+          'intracks': ('intracks', 
+                       lambda path: np.load(path)
+                       [('true_e',    '<f8'),
+                        ('true_zen',  '<f8'),
+                        ('true_az',   '<f8'),
+                        ('reco_e',    '<f8'),
+                        ('reco_zen',  '<f8'),
+                        ('reco_az',   '<f8'),
+                        ('oneweight', '<f8'),
+                        ('ptype',     '<i8'),
+                       ]
+                      ),
+          'LowUp'   : ('LowUp',
+                       lambda path: h5.File(path, 'r'),
+                       [('true_e',    '<f8'),
+                        ('true_zen',  '<f8'),
+                        ('true_az',   '<f8'),
+                        #('reco_e',    '<f8'),
+                        ('reco_zen',  '<f8'),
+                        ('reco_az',   '<f8'),
+                        ('oneweight', '<f8'),
+                        ('ptype',     '<i8'),
+                       ]
+                      )
+         }
 
 class MCReader():
 
-    def __init__(self, mcpath, slc=slice(None), options='00'):
-        self.mcpath    = mcpath
-        self._rescale  = int(options[0])
-        self._scramble = int(options[1])
-        self.slc       = slc
+    def __init__(self, path, flux=None, slc=slice(None), emin=0, emax=np.inf, options='00'):
+        self.path  = path
+        self.fname = mc_fname(path)
+        if flux is not None:
+            self.flux  = flux[slc]
+        else:
+            self.flux = flux
+        self.slc   = slc
+        self.emin  = emin
+        self.emax  = emax
+        self.options = options
+
         self.set_event_selection()
-        
-        if self.event_selection=='MEOWS':
-            self.num_files = float(mcpath.split('_')[-1][:-3])/5.
-            self.h5f = h5py.File(mcpath, "r")
-        elif self.event_selection=='LowUp':
-            #self.num_files = float(mcpath.split('_')[-1][:-3])/5.
-            self.num_files = 1.0
-            self.h5f = h5py.File(mcpath, "r")
-        elif self.event_selection=='PSTracks':
-            self.h5f = np.load(self.mcpath)
-            self.num_files = 1.
-        elif self.event_selection=='Hans':
-            self.h5f = np.load(self.mcpath)
-            self.num_files = 1.
-        elif self.event_selection=='oscNext':
-            self.h5f = h5py.File(mcpath, 'r')
+        _, loader, self._dtypes = params[self.event_selection]
+        self.mcf  = loader(self.path)
+
         self.set_mc_quantities()
-        if (self.event_selection=='MEOWS') or (self.event_selection=='oscNext'):
-            self.h5f.close()
+        if self.event_selection=='oscNext': # Cut requires information only available in ON
+            self.apply_filter_mask()
+        if not (self.emin==0 and self.emax==np.inf): # don't do cut if trivial
+            self.apply_energy_mask()
+
+        if hasattr(loader, 'close'):
+            loader.close()
 
     def set_event_selection(self):
-        if ('SterileNeutrino' in self.mcpath):
-            self.event_selection = 'MEOWS'
-        elif ('JLevel' in self.mcpath):
-            self.event_selection = 'LowUp'
-        elif 'IC86_2012_MC.npy' in self.mcpath:
-            self.event_selection = 'PSTracks'
-        elif 'hmniederhausen/' in self.mcpath:
-            self.event_selection = 'Hans'
-        elif 'oscNext' in self.mcpath:
+        if 'hmniederhausen/' in self.path:
+            self.event_selection = 'intracks'
+        elif ('oscNext' in self.path):
             self.event_selection = 'oscNext'
+        elif 'JLevel' in self.path:
+            self.event_selection = 'LowUp'
         else:
             print('Event selection not recognized')
             quit()
 
-    def set_mc_quantities(self):
-        if (self.event_selection=='MEOWS'):
-            self.nu_e = self.h5f["NuEnergy"][()][self.slc]
-            if self._scramble:
-                delta_az = np.random.rand(len(self.nu_e))*2*np.pi
-            else:
-                delta_az = np.zeros(len(self.nu_e))
-            self.nu_zen    = self.h5f["NuZenith"][()][self.slc]
-            self.nu_az     = self.h5f["NuAzimuth"][()][self.slc]
-            #self.reco_e    = self.h5f["MuExEnergy"][()][self.slc]
-            if not self._rescale:
-                self.reco_zen  = self.h5f["RecoZenith"][()][self.slc]
-                _ = self.h5f["RecoAzimuth"][()][self.slc]
-                self.reco_az   = np.mod(_+delta_az, 2*np.pi)
-            else:
-                from gen_rescale_az_zen import gen_new_zen_az
-                reco_az, reco_zen = gen_new_zen_az(self.h5f["NuEnergy"][()])
-                self.reco_az = np.mod(reco_az[self.slc]+delta_az,2*np.pi)
-                self.reco_zen = reco_zen[self.slc]
-            self.oneweight = self.h5f["oneweight"][()][self.slc]/self.num_files
-            self.ptype = self.h5f['PrimaryType'][()]
-        if (self.event_selection=='LowUp'):
-            self.nu_e = self.h5f["TrueEnergy"][()][self.slc]
-            if self._scramble:
-                delta_az = np.random.rand(len(self.nu_e))*2*np.pi
-            else:
-                delta_az = np.zeros(len(self.nu_e))
-            self.nu_zen    = self.h5f["TrueZenith"][()][self.slc]
-            self.nu_az     = self.h5f["TrueAzimuth"][()][self.slc]
-            #self.reco_e    = self.h5f["MuExEnergy"][()][self.slc]
-            if not self._rescale:
-                self.reco_zen  = self.h5f["RecoZenith"][()][self.slc]
-                _ = self.h5f["RecoAzimuth"][()][self.slc]
-                self.reco_az   = np.mod(_+delta_az, 2*np.pi)
-            else:
-                from gen_rescale_az_zen import gen_new_zen_az
-                reco_az, reco_zen = gen_new_zen_az(self.h5f["TrueEnergy"][()])
-                self.reco_az = np.mod(reco_az[self.slc]+delta_az,2*np.pi)
-                self.reco_zen = reco_zen[self.slc]
-            self.oneweight = self.h5f["eff_oneweight"][()][self.slc]/self.num_files
-            self.ptype = self.h5f['PrimaryType'][()]
-        elif (self.event_selection=='PSTracks'):
-            self.nu_e      = self.h5f['trueE'][self.slc]
-            delta_ra       = self.h5f['trueRa'][self.slc]-self.h5f['ra'][self.slc]
-            self.nu_az     = np.random.rand(len(self.nu_e))*np.pi*2
-            self.nu_zen    = self.h5f['trueDec'][self.slc]+np.pi/2
-            self.reco_e    = np.power(10, self.h5f['logE'])[self.slc]
-            self.reco_az   = (self.nu_az-delta_ra) % (2*np.pi)
-            self.reco_zen  = self.h5f['dec'][self.slc]+np.pi/2
-            self.oneweight = self.h5f['ow'][self.slc]
-            self.ptype     = np.where(np.random.rand(len(self.nu_az))<0.4511734444723442, 14,-14)
-        elif self.event_selection=='Hans':
-            self.nu_e      = self.h5f['trueE'][self.slc]
-            self.nu_az     = self.h5f['trueAzi'][self.slc]
-            self.nu_zen    = self.h5f['trueDec'][self.slc]+np.pi/2
-            self.reco_e    = np.power(10, self.h5f['logE'])[self.slc]
-            self.reco_az   = self.h5f['azi'][self.slc]
-            self.reco_zen  = self.h5f['dec'][self.slc]+np.pi/2
-            self.oneweight = self.h5f['ow'][self.slc]
-            self.ptype     = np.where(np.random.rand(len(self.nu_az))<0.4511734444723442, 14,-14)
-        elif self.event_selection=='oscNext':
-            print('oscNext')
-            n_events = 0
-            i0       = 0
-            slices   = []
-            for key in self.h5f.keys():
-                n         = len(self.h5f[key]['L7_reconstructed_total_energy'][()])
-                n_events += n
-                i1       = i0+n
-                slices.append(slice(i0,i1))
-                i0       = i1
-            if self._scramble:
-                delta_az = np.random.rand(n_events)*2*np.pi
-            else:
-                delta_az = np.zeros(n_events)
-            self.nu_e      = np.zeros(n_events)
-            self.nu_az     = np.zeros(n_events)
-            self.nu_zen    = np.zeros(n_events)
-            self.reco_e    = np.zeros(n_events)
-            self.reco_az   = np.zeros(n_events)
-            self.reco_zen  = np.zeros(n_events)
-            self.oneweight = np.zeros(n_events)
-            self.ptype     = np.zeros(n_events)
-            for key, slc in zip(self.h5f.keys(), slices):
-                self.nu_e[slc]      = self.h5f[key]['MCInIcePrimary.energy'][()]
-                self.nu_az[slc]     = self.h5f[key]['MCInIcePrimary.dir.azimuth'][()]
-                self.nu_zen[slc]    = self.h5f[key]['MCInIcePrimary.dir.coszen'][()]
-                self.reco_e[slc]    = self.h5f[key]['L7_reconstructed_total_energy'][()]
-                self.reco_az[slc]   = self.h5f[key]['L7_reconstructed_azimuth'][()]
-                self.reco_zen[slc]  = np.arccos(self.h5f[key]['L7_reconstructed_coszen'][()])
-                self.oneweight[slc] = self.h5f[key]['I3MCWeightDict.OneWeight'][()] / (self.h5f[key]['I3MCWeightDict.NEvents'][()] * self.h5f[key]['I3MCWeightDict.gen_ratio'][()])
-                self.ptype[slc] = self.h5f[key]['MCInIcePrimary.pdg_encoding'][()]
-            self.reco_az +=delta_az
-        elif self.event_selection=='JLevel':
-            self.nu_e = self.h5f["NuEnergy"][()][self.slc]
-            self.nu_zen    = self.h5f["NuZenith"][()][self.slc]
-            self.nu_az     = self.h5f["NuAzimuth"][()][self.slc]
-            #self.reco_e    = self.h5f["MuExEnergy"][()][self.slc]
-            self.reco_zen  = self.h5f["RecoZenith"][()][self.slc]
-            self.reco_az   = self.h5f["RecoAzimuth"][()][self.slc]
-            self.oneweight = self.h5f["eff_oneweight"][()][self.slc]/self.num_files
-            self.ptype = self.h5f['PrimaryType'][()]
-            
+    def apply_energy_mask(self):
+        mask = np.where(np.logical_and(self.mc_data.nu_e>self.emin, self.mc_data.nu_e<self.emax))[0]
+        self.mc_data = self.mc_data[mask]
+        if self.flux is not None:
+            self.flux      = self.flux[mask]
 
-        
-    def set_oneweight(self):
-        if path.exists(self.mcfg.get_ow_path()):
-            ow = np.load(self.mcfg.get_ow_path())[self.slc]/self.num_files
-        elif 'oneweight' in self.h5f.keys():
-            print('MEWOWOW')
-            ow = self.h5f["oneweight"][()][self.slc]/self.num_files
+    def apply_filter_mask(self):
+        if self.options=='00':
+            return
+        elif self.options=='11': # Omit both lowup and muon filter
+            mask = np.where((1-self.passed_muon)*(1-self.passed_lowup)==1)[0]
+        elif self.options=='01': # Omit lowup filter only
+            mask = np.where(self.passed_lowup==0)
+        elif self.options=='10': # Omit muon filter only
+            mask = np.where(self.passed_lowup==0)
         else:
-            ow = wmc.weight_mc(self.mcfg)[self.slc]/self.num_files
-        self.oneweight = ow
+            raise RuntimeError
+        self.mc_data = self.mc_data[mask]
+        if self.flux is not None:
+            self.flux      = self.flux[mask]
 
-    def set_compare():
-        self.oneweight = np.where(self.nu_e>3000, 0, self.oneweight)
-        
+    def set_mc_quantities(self):
+        if self.event_selection=='LowUp':
+            true_e    = self.mcf["TrueEnergy"][()][self.slc]
+            true_zen  = self.mcf["TrueZenith"][()][self.slc]
+            true_az   = self.mcf["TrueAzimuth"][()][self.slc]
+            #self.reco_e    = self.mcf["MuExEnergy"][()][self.slc]
+            reco_zen  = self.mcf["RecoZenith"][()][self.slc]
+            reco_az   = self.mcf["RecoAzimuth"][()][self.slc]
+            oneweight = self.mcf["eff_oneweight"][()][self.slc]
+            ptype = self.mcf['PrimaryType'][()][self.slc]
+            arr = np.array([tup for tup in zip(true_e, 
+                                               true_zen, 
+                                               true_az, 
+                                               #reco_e, 
+                                               reco_zen, 
+                                               reco_az, 
+                                               oneweight, 
+                                               ptype
+                                              )
+                           ],
+                           dtype=self._dtypes
+                          )
+            self.mc_data = arr.view(np.recarray)
+        if self.event_selection=='intracks':
+            nu_e      = self.mcf['trueE']
+            nu_az     = self.mcf['trueAzi']
+            nu_zen    = self.mcf['trueDec']+np.pi/2
+            reco_e    = np.power(10, self.mcf['logE'])
+            reco_az   = self.mcf['azi']
+            reco_zen  = self.mcf['dec']+np.pi/2
+            oneweight = self.mcf['ow']
+            # TODO find actual particle type information
+            ptype     = np.where(np.random.rand(len(self.nu_az))<0.4511734444723442, 14,-14)
+            arr = np.array([tup for tup in zip(true_e, 
+                                               true_zen, 
+                                               true_az, 
+                                               reco_e, 
+                                               reco_zen, 
+                                               reco_az, 
+                                               oneweight, 
+                                               ptype
+                                              )
+                           ],
+                           dtype=self._dtypes
+                          )
+            self.mc_data = arr.view(np.recarray)
+        elif self.event_selection=='oscNext':
+            nu_e         = []
+            nu_az        = []
+            nu_zen       = []
+            reco_e       = []
+            reco_az      = []
+            reco_zen     = []
+            ptype        = []
+            trackprob    = []
+            oneweight    = []
+            rweight      = []
+            passed_muon  = []
+            passed_lowup = []
+            for key in self.mcf.keys():
+                true_e    = np.append(nu_e, self.mcf[key]['MCInIcePrimary.energy'][()])
+                true_az   = np.append(nu_az, self.mcf[key]['MCInIcePrimary.dir.azimuth'][()])
+                true_zen  = np.append(nu_zen, np.arccos(self.mcf[key]['MCInIcePrimary.dir.coszen'][()]))
+                reco_e    = np.append(reco_e, self.mcf[key]['L7_reconstructed_total_energy'][()])
+                reco_az   = np.append(reco_az, self.mcf[key]['L7_reconstructed_azimuth'][()])
+                reco_zen  = np.append(reco_zen, np.arccos(self.mcf[key]['L7_reconstructed_coszen'][()]))
+                ptype     = np.append(ptype, self.mcf[key]['MCInIcePrimary.pdg_encoding'][()])
+                trackprob = np.append(trackprob, self.mcf[key]['L7_PIDClassifier_FullSky_ProbTrack'][()])
+                oneweight = np.append(oneweight, self.mcf[key]['I3MCWeightDict.OneWeight'][()] / (self.mcf[key]['I3MCWeightDict.NEvents'][()] * self.mcf[key]['I3MCWeightDict.gen_ratio'][()] * oscNext_nfiles[key]))
+                rweight   = np.append(rweight, self.mcf[key]['ReferenceWeight'][()])
+                passed_lowup = np.append(passed_muon, 
+                                              self.mcf[key]['FilterMask.LowUp_13.prescale_passed'][()] * self.mcf[key]['FilterMask.LowUp_13.condition_passed'][()]
+                                             ) 
+                passed_muon  = np.append(passed_muon, 
+                                              self.mcf[key]['FilterMask.MuonFilter_13.prescale_passed'][()] * self.mcf[key]['FilterMask.MuonFilter_13.condition_passed'][()]
+                                             )
+            arr = np.array([tup for tup in zip(true_e, 
+                                               true_zen, 
+                                               true_az, 
+                                               reco_e, 
+                                               reco_zen, 
+                                               reco_az, 
+                                               oneweight, 
+                                               ptype,
+                                               trackprob,
+                                               rweight,
+                                               passed_muon,
+                                               passed_lowup,
+                                              )
+                           ],
+                           dtype=self._dtypes
+                          ),
+            self.mc_data = arr.view(np.recarray)
 
 if __name__=='__main__':
     from  sys import argv as args
-    mcpath = args[1]
-    print(args[2])
-    slc = slice(None, None, int(args[2]))
-    mcr = MCReader(mcpath, slc)
+    path = args[1]
+    mcr = MCReader(path)
+    print(len(mcr.nu_e))
