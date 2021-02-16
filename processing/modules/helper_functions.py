@@ -14,4 +14,6 @@ def check_write_permissions(path):
         outdir = '/'.join(path.split('/')[:-1])
     return os.access(outdir, os.W_OK)
 
+def mc_fname(path):
+    return '.'.join(path.split('/')[-1].split('.')[:-1])
 truecondition=lambda frame: True

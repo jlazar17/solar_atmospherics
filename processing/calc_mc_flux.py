@@ -23,8 +23,8 @@ def initialize_args():
 
 def create_mc_fluxmaker(mcpath, flux):
     if flux=='conv-atm':
-        from convnumu_mc_fluxmaker import ConvNumuMCFluxMaker
-        fluxmaker = ConvNumuMCFluxMaker(mcpath, flux)
+        from convatm_mc_fluxmaker import ConvAtmMCFluxMaker
+        fluxmaker = ConvAtmMCFluxMaker(mcpath, flux)
     elif flux=='solar-atm':
         from solar_mc_fluxmaker import SolarMCFluxmaker
         fluxmaker = SolarMCFluxmaker(mcpath, flux)
@@ -53,5 +53,4 @@ if __name__=='__main__':
         outfile = '%s/%s_%s.npy' % (default_outdir, args.flux, mcname)
     else:
         outfile = args.o
-    print(args.o)
     main(args.mcpath, args.flux, outfile)

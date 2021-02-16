@@ -15,7 +15,7 @@ class BaseMCFluxmaker():
 
     
     def do_calc(self):
-        avg_flux = np.zeros(len(self.mc.oneweight))
+        avg_flux = np.zeros(len(self.mc.mc_data.oneweight))
         for az, jd in zip(params['azimuths'], params['jds']):
             x      = sc.nParameter(jd)
             obl    = sc.solarObliquity(x)

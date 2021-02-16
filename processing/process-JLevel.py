@@ -154,15 +154,6 @@ tray.AddModule(fixWeightMap,"patchCorsikaWeights")
 
 truecondition=lambda frame: True
 
-#======================================
-# Compute precut variables and do precut
-tray.AddModule(dumbOMSelection,"NoDeepCore",
-        pulses                  = SRTInIcePulses,
-        output                  = SRTInIcePulses_NoDC,
-        omittedStrings  = deepCoreStrings,
-        IfCond                  = truecondition
-        )
-
 tray.AddModule(ComputeChargeWeightedDist,"CCWD",Pulses=SRTInIcePulses_NoDC,Track="PoleMPEFitName")
 
 tray.AddModule(precut,"precut")
@@ -180,13 +171,13 @@ tray.AddModule("I3SeededRTCleaning_RecoPulse_Module", "SRTClean",
         )
 
 tray.AddModule("I3TopologicalSplitter","TTrigger",
-        SubEventStreamName              = "TTrigger", #Spencer -- Is this ok?? I was getting warnigngs...
-        InputName                               = SRTInIcePulses,
-        OutputName                              = "TTPulses",
-        Multiplicity                    = 4,
-        TimeWindow                              = 4000*I3Units.ns,
-        TimeCone                                = 800*I3Units.ns,
-        SaveSplitCount                  = True
+        SubEventStreamName = "TTrigger", #Spencer -- Is this ok?? I was getting warnigngs...
+        InputName          = SRTInIcePulses,
+        OutputName         = "TTPulses",
+        Multiplicity       = 4,
+        TimeWindow         = 4000*I3Units.ns,
+        TimeCone           = 800*I3Units.ns,
+        SaveSplitCount     = True
         )
 
 tray.AddModule("AfterPulseSpotter","Afterpulses")(

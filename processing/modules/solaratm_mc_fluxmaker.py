@@ -15,9 +15,9 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
         self.mass = int(self.fluxpath.split('/')[-1].split('_')[0].split('m')[-1])
         wfc = WIMPFluxCalculator(fluxpath, self.mass)
         wfc.initialize_nuSQuIDS()
-        self.dndz = np.array([wfc.get_flux(cz, e, ptype) for cz, e, ptype in zip(np.array(np.cos(self.mc.nu_zen),np.float64),
-                                                                                 self.mc.nu_e,
-                                                                                 self.mc.ptype
+        self.dndz = np.array([wfc.get_flux(cz, e, ptype) for cz, e, ptype in zip(np.array(np.cos(self.mc.mc_data.nu_zen),np.float64),
+                                                                                 self.mc.mc_data.nu_e,
+                                                                                 self.mc.mc_data.ptype
                                                                                 )
                              ]
                             )
@@ -30,13 +30,13 @@ class WIMPMCFluxmaker(BaseMCFluxmaker):
         zmin              = zen-gamma_cut
         amax              = az+gamma_cut
         amin              = az-gamma_cut
-        m1                = np.logical_and(self.mc.nu_zen>zmin, self.mc.nu_zen<zmax)
-        m2                = np.logical_and((self.mc.nu_az>amin%(2*np.pi)), self.mc.nu_az<amax%(2*np.pi))
+        m1                = np.logical_and(self.mc.mc_data.nu_zen>zmin, self.mc.mc_data.nu_zen<zmax)
+        m2                = np.logical_and((self.mc.mc_data.nu_az>amin%(2*np.pi)), self.mc.mc_data.nu_az<amax%(2*np.pi))
         m3                = True
         #m3                = self.mc.nu_e<=float(self.mass)
         m12               = np.logical_and(m1, m2)
         m                 = np.logical_and(m12, m3)
-        nu_gamma          = np.where(m, opening_angle(self.mc.nu_zen, self.mc.nu_az, zen, az), 1)
+        nu_gamma          = np.where(m, opening_angle(self.mc.mc_data.nu_zen, self.mc.mc_data.nu_az, zen, az), 1)
         
         n = np.where(nu_gamma <= gamma_cut,
                      self.dndz *             \

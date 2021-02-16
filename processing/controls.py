@@ -6,6 +6,23 @@ units = PhysicsConstants()
 datadir = '/data/user/jlazar/solar_WIMP_v2/data/'
 czens    = np.linspace(-1, 1, 150)
 
+conv_numu_params = dict(
+                        czz=np.linspace(-1, 1, 150),
+                        ee=np.logspace(0, 6, 525),
+                       )
+oscNext_nfiles = dict(nue_cc=602.0,
+                      nue_nc=602.0,
+                      nuebar_cc=602.0,
+                      nuebar_nc=602.0,
+                      numu_cc=1518.0,
+                      numu_nc=1518.0,
+                      numubar_cc=1518.0,
+                      numubar_nc=1518.0,
+                      nutau_cc=334.0,
+                      nutau_nc=334.0,
+                      nutaubar_cc=334.0,
+                      nutaubar_nc=334.0,
+                     )
 def process_params():
     from icecube import icetray, STTools
     from icecube.common_variables import direct_hits
@@ -61,20 +78,20 @@ def weighting_params():
               'genie' : 50000.0
              }
     descs = [
-             ('ZTravel',       '<i8'),
-             ('oneweight',     '<i8'),
-             ('COGZ',          '<i8'),
-             ('COGZSigma',     '<i8'),
-             ('TrueEnergy',    '<i8'),
-             ('TrueZenith',    '<i8'),
-             ('TrueAzimuth',   '<i8'),
-             ('PrimaryType',   '<i8'),
-             ('RLogL',         '<i8'),
-             ('RecoAzimuth',   '<i8'),
-             ('RecoZenith',    '<i8'),
-             ('QTot',          '<i8'),
+             ('ZTravel',       '<f8'),
+             ('oneweight',     '<f8'),
+             ('COGZ',          '<f8'),
+             ('COGZSigma',     '<f8'),
+             ('TrueEnergy',    '<f8'),
+             ('TrueZenith',    '<f8'),
+             ('TrueAzimuth',   '<f8'),
+             ('PrimaryType',   '<f8'),
+             ('RLogL',         '<f8'),
+             ('RecoAzimuth',   '<f8'),
+             ('RecoZenith',    '<f8'),
+             ('QTot',          '<f8'),
              #('RecoEnergy',    '<i8'),
-             ('eff_oneweight', '<i8'),
+             ('eff_oneweight', '<f8'),
             ]
     params['nevents'] = nevents
     params['descs'] = descs

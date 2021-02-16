@@ -1,6 +1,7 @@
 import numpy as np
 from base_flux_calculator import BaseFluxCalculator 
 from controls import units, datadir
+from controls import conv_numu_params
 
 class ConvAtmoFluxCalculator(BaseFluxCalculator):
 
