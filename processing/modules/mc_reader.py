@@ -43,6 +43,8 @@ params = {'oscNext' : ('oscNext',
                         ('reco_az',   '<f8'),
                         ('oneweight', '<f8'),
                         ('ptype',     '<i8'),
+                        ('qtot',      '<f8'),
+                        ('rlogl',     '<f8'),
                        ]
                       )
          }
@@ -115,7 +117,9 @@ class MCReader():
             reco_zen  = self.mcf["RecoZenith"][()][self.slc]
             reco_az   = self.mcf["RecoAzimuth"][()][self.slc]
             oneweight = self.mcf["eff_oneweight"][()][self.slc]
-            ptype = self.mcf['PrimaryType'][()][self.slc]
+            ptype     = self.mcf['PrimaryType'][()][self.slc]
+            qtot      = self.mcf['QTot'][()][self.slc]
+            rlogl     = self.mcf['RLogL'][()][self.slc]
             arr = np.array([tup for tup in zip(true_e, 
                                                true_zen, 
                                                true_az, 
@@ -123,7 +127,9 @@ class MCReader():
                                                reco_zen, 
                                                reco_az, 
                                                oneweight, 
-                                               ptype
+                                               ptype,
+                                               qtot,
+                                               rlogl,
                                               )
                            ],
                            dtype=self._dtypes
