@@ -33,7 +33,25 @@ params = {'oscNext' : ('oscNext',
                         ('ptype',     '<i8'),
                        ]
                       ),
-          'LowUp'   : ('LowUp',
+          'nancy'   : ('LowUp',
+                       lambda path: h5.File(path, 'r'),
+                       [('true_e',    '<f8'),
+                        ('true_zen',  '<f8'),
+                        ('true_az',   '<f8'),
+                        #('reco_e',    '<f8'),
+                        ('reco_zen',  '<f8'),
+                        ('reco_az',   '<f8'),
+                        ('oneweight', '<f8'),
+                        ('eff_oneweight', '<f8'),
+                        ('ptype',     '<i8'),
+                        ('qtot',      '<f8'),
+                        ('rlogl',     '<f8'),
+                        ('ztravel',   '<f8'),
+                        ('cogz',      '<f8'),
+                        ('cogzsigma', '<f8'),
+                       ]
+                      ),
+          'genie'   : ('LowUp',
                        lambda path: h5.File(path, 'r'),
                        [('true_e',    '<f8'),
                         ('true_zen',  '<f8'),
@@ -53,123 +71,84 @@ params = {'oscNext' : ('oscNext',
                       )
          }
 
-class MCReader():
+class MCReader(object):
 
-    def __init__(self, path, flux=None, slc=slice(None), emin=0, emax=np.inf, options='00'):
-        self.path  = path
-        self.fname = mc_fname(path)
-        if flux is not None:
-            self.flux  = flux[slc]
+    def __init__(self, path=None, name=None, mc_data=None, options='00', additional_data=None):
+
+        self.options         = options
+        self._path           = path
+        self.additional_data = additional_data
+        if path is not None:
+            self.fname = mc_fname(path)
+            self.set_name()
+            _, loader, self._dtypes = params[self.name]
+            self.mcf  = loader(path)
         else:
-            self.flux = flux
-        self.slc   = slc
-        self.emin  = emin
-        self.emax  = emax
-        self.options = options
-
-        self.set_event_selection()
-        _, loader, self._dtypes = params[self.event_selection]
-        self.mcf  = loader(self.path)
-
-        self.set_mc_quantities()
-        if self.event_selection=='oscNext': # Cut requires information only available in ON
-            self.apply_filter_mask()
-        if not (self.emin==0 and self.emax==np.inf): # don't do cut if trivial
-            self.apply_energy_mask()
+            self.name    = name
+            self._dtypes = []
+            loader       = None
+        self.set_mc_data()
 
         if hasattr(loader, 'close'):
             loader.close()
 
-    def set_event_selection(self):
-        if 'hmniederhausen/' in self.path:
-            self.event_selection = 'intracks'
-        elif ('oscNext' in self.path):
-            self.event_selection = 'oscNext'
-        elif 'JLevel' in self.path:
-            self.event_selection = 'LowUp'
+    def __add__(self, other):
+        shared_dnames = list(set(self.mc_data.dtype.names) & set(other.mc_data.dtype.names))
+        data          = [(np.append(self.mc_data[name], other.mc_data[name]), name, dtype)
+                         for name, dtype in self.mc_data.dtype.descr
+                         if name in shared_dnames
+                        ]
+        name = '%s-%s' % (self.name, other.name)
+        return MCReader(additional_data=data, name=name)
+
+    def __len__(self):
+        return len(self.mc_data)
+
+    def set_name(self):
+        if 'hmniederhausen/' in self._path:
+            self.name = 'intracks'
+        elif ('oscNext' in self._path):
+            self.name = 'oscNext'
+        elif 'JLevel' in self._path:
+            if 'nancy' in self._path:
+                self.name = 'nancy'
+            elif 'genie' in self._path:
+                self.name = 'genie'
         else:
             print('Event selection not recognized')
             quit()
 
-    def apply_energy_mask(self):
-        mask = np.where(np.logical_and(self.mc_data.nu_e>self.emin, self.mc_data.nu_e<self.emax))[0]
-        self.mc_data = self.mc_data[mask]
-        if self.flux is not None:
-            self.flux      = self.flux[mask]
+    def set_mc_data(self):
+        if self.name=='nancy' or self.name=='genie':
+            data = [
+                    self.mcf["TrueEnergy"][()],
+                    self.mcf["TrueZenith"][()],
+                    self.mcf["TrueAzimuth"][()],
+                    self.mcf["RecoZenith"][()],
+                    self.mcf["RecoAzimuth"][()],
+                    self.mcf["eff_oneweight"][()],
+                    self.mcf["eff_oneweight"][()],
+                    self.mcf['PrimaryType'][()],
+                    self.mcf['QTot'][()],
+                    self.mcf['RLogL'][()],
+                    self.mcf['COGZ'][()],
+                    self.mcf['COGZSigma'][()],
+                    self.mcf['ZTravel'][()],
+                   ]
 
-    def apply_filter_mask(self):
-        if self.options=='00':
-            return
-        elif self.options=='11': # Omit both lowup and muon filter
-            mask = np.where((1-self.passed_muon)*(1-self.passed_lowup)==1)[0]
-        elif self.options=='01': # Omit lowup filter only
-            mask = np.where(self.passed_lowup==0)
-        elif self.options=='10': # Omit muon filter only
-            mask = np.where(self.passed_lowup==0)
-        else:
-            raise RuntimeError
-        self.mc_data = self.mc_data[mask]
-        if self.flux is not None:
-            self.flux      = self.flux[mask]
-
-    def set_mc_quantities(self):
-        if self.event_selection=='LowUp':
-            true_e    = self.mcf["TrueEnergy"][()][self.slc]
-            true_zen  = self.mcf["TrueZenith"][()][self.slc]
-            true_az   = self.mcf["TrueAzimuth"][()][self.slc]
-            #self.reco_e    = self.mcf["MuExEnergy"][()][self.slc]
-            reco_zen  = self.mcf["RecoZenith"][()][self.slc]
-            reco_az   = self.mcf["RecoAzimuth"][()][self.slc]
-            oneweight = self.mcf["eff_oneweight"][()][self.slc]
-            ptype     = self.mcf['PrimaryType'][()][self.slc]
-            qtot      = self.mcf['QTot'][()][self.slc]
-            rlogl     = self.mcf['RLogL'][()][self.slc]
-            cogz      = self.mcf['COGZ'][()][self.slc]
-            cogzsigma = self.mcf['COGZSigma'][()][self.slc]
-            ztravel   = self.mcf['ZTravel'][()][self.slc]
-            arr = np.array([tup for tup in zip(true_e, 
-                                               true_zen, 
-                                               true_az, 
-                                               #reco_e, 
-                                               reco_zen, 
-                                               reco_az, 
-                                               oneweight, 
-                                               oneweight, 
-                                               ptype,
-                                               qtot,
-                                               rlogl,
-                                               ztravel,
-                                               cogz,
-                                               cogzsigma,
-                                              )
-                           ],
-                           dtype=self._dtypes
-                          )
-            self.mc_data = arr.view(np.recarray)
-        if self.event_selection=='intracks':
-            nu_e      = self.mcf['trueE']
-            nu_az     = self.mcf['trueAzi']
-            nu_zen    = self.mcf['trueDec']+np.pi/2
-            reco_e    = np.power(10, self.mcf['logE'])
-            reco_az   = self.mcf['azi']
-            reco_zen  = self.mcf['dec']+np.pi/2
-            oneweight = self.mcf['ow']
-            # TODO find actual particle type information
-            ptype     = np.where(np.random.rand(len(self.nu_az))<0.4511734444723442, 14,-14)
-            arr = np.array([tup for tup in zip(true_e, 
-                                               true_zen, 
-                                               true_az, 
-                                               reco_e, 
-                                               reco_zen, 
-                                               reco_az, 
-                                               oneweight, 
-                                               ptype
-                                              )
-                           ],
-                           dtype=self._dtypes
-                          )
-            self.mc_data = arr.view(np.recarray)
-        elif self.event_selection=='oscNext':
+        elif self.name=='intracks':
+            data = [
+                    self.mcf['trueE'],
+                    self.mcf['trueDec']+np.pi/2,
+                    self.mcf['trueAzi'],
+                    np.power(10, self.mcf['logE']),
+                    self.mcf['dec']+np.pi/2,
+                    self.mcf['azi'],
+                    self.mcf['ow'],
+                    # TODO find actual particle type information
+                    np.where(np.random.rand(len(self.nu_az))<0.4511734444723442, 14,-14),
+                   ]
+        elif self.name=='oscNext':
             nu_e         = []
             nu_az        = []
             nu_zen       = []
@@ -199,23 +178,31 @@ class MCReader():
                 passed_muon  = np.append(passed_muon, 
                                               self.mcf[key]['FilterMask.MuonFilter_13.prescale_passed'][()] * self.mcf[key]['FilterMask.MuonFilter_13.condition_passed'][()]
                                              )
-            arr = np.array([tup for tup in zip(true_e, 
-                                               true_zen, 
-                                               true_az, 
-                                               reco_e, 
-                                               reco_zen, 
-                                               reco_az, 
-                                               oneweight, 
-                                               ptype,
-                                               trackprob,
-                                               rweight,
-                                               passed_muon,
-                                               passed_lowup,
-                                              )
-                           ],
-                           dtype=self._dtypes
-                          ),
-            self.mc_data = arr.view(np.recarray)
+            data = [
+                    true_e,
+                    true_zen,
+                    true_az,
+                    reco_e,
+                    reco_zen,   
+                    reco_az,
+                    oneweight,
+                    ptype,
+                    trackprob,
+                    rweight,
+                    passed_muon,
+                    passed_lowup,
+                   ]
+        else:
+            data = []
+        if self.additional_data is not None:
+            for data_arr, dname, dtype in self.additional_data:
+                data.append(data_arr)
+                self._dtypes.append((dname,dtype))
+
+        arr = np.array([tup for tup in zip(*tuple(data))],
+                       dtype=self._dtypes
+                      )
+        self.mc_data = arr.view(np.recarray)
 
 if __name__=='__main__':
     from  sys import argv as args
