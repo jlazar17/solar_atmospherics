@@ -45,14 +45,14 @@ def RenameOutVars(frame, geometry, fluxname, corsika_set):
         true_energy  = frame['I3MCWeightDict']['PrimaryNeutrinoEnergy']
         true_zenith  = frame['I3MCWeightDict']['PrimaryNeutrinoZenith']
         true_azimuth = frame['I3MCWeightDict']['PrimaryNeutrinoAzimuth']
-        nu_type      = frame['I3MCWeightDict']['PrimaryNeutrinoType']
+        ptype        = frame['I3MCWeightDict']['PrimaryNeutrinoType']
         oneweight    = frame['I3MCWeightDict']['OneWeight']
 
     elif fluxname=='genie':
         true_energy  = frame['I3MCTree'][0].energy
         true_zenith  = frame['I3MCTree'][0].dir.zenith
         true_azimuth = frame['I3MCTree'][0].dir.azimuth
-        nu_type      = frame['I3MCTree'][0].pdg_encoding
+        ptype        = frame['I3MCTree'][0].pdg_encoding
         oneweight    = frame['I3MCWeightDict']['OneWeight']
         
     elif fluxname=='corsika':
@@ -63,7 +63,6 @@ def RenameOutVars(frame, geometry, fluxname, corsika_set):
         true_energy  = dataclasses.get_most_energetic_muon(frame['I3MCTree']).energy
         true_zenith  = dataclasses.get_most_energetic_muon(frame['I3MCTree']).dir.zenith
         true_azimuth = dataclasses.get_most_energetic_muon(frame['I3MCTree']).dir.azimuth
-        nu_type      = NaN
         oneweight    = frame.Get('Weight')
         
     frame.Put('RLogL',        dataclasses.I3Double(rlogl))
@@ -75,7 +74,7 @@ def RenameOutVars(frame, geometry, fluxname, corsika_set):
     frame.Put('TrueEnergy'  , dataclasses.I3Double(true_energy))
     frame.Put('TrueZenith'  , dataclasses.I3Double(true_zenith))
     frame.Put('TrueAzimuth' , dataclasses.I3Double(true_azimuth))
-    frame.Put('PrimaryType' , dataclasses.I3Double(nu_type))
+    frame.Put('PrimaryType' , dataclasses.I3Double(ptype))
     frame.Put('oneweight'   , dataclasses.I3Double(oneweight))
     frame.Put('QTot'        , dataclasses.I3Double(qtot))
 
