@@ -31,7 +31,7 @@ def load_core_data(selection, path):
 
 def check_same_len(mc_data):
     lst = [len(t[0]) for t in mc_data]
-    return all(ele == lst[0] for ele in lst)
+    return len(set(lst))==1
 
 class MCReader(object):
 
