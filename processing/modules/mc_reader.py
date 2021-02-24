@@ -1,6 +1,7 @@
 import numpy as np
 import h5py as h5
-from os import path
+import sys
+sys.path.append('../')
 
 from controls import oscNext_nfiles
 from helper_functions import mc_fname
@@ -22,7 +23,7 @@ params = {'oscNext' : ('oscNext',
                        ]
                       ),
           'intracks': ('intracks', 
-                       lambda path: np.load(path)
+                       lambda path: np.load(path),
                        [('true_e',    '<f8'),
                         ('true_zen',  '<f8'),
                         ('true_az',   '<f8'),
@@ -131,9 +132,9 @@ class MCReader(object):
                     self.mcf['PrimaryType'][()],
                     self.mcf['QTot'][()],
                     self.mcf['RLogL'][()],
+                    self.mcf['ZTravel'][()],
                     self.mcf['COGZ'][()],
                     self.mcf['COGZSigma'][()],
-                    self.mcf['ZTravel'][()],
                    ]
 
         elif self.name=='intracks':
@@ -146,12 +147,12 @@ class MCReader(object):
                     self.mcf['azi'],
                     self.mcf['ow'],
                     # TODO find actual particle type information
-                    np.where(np.random.rand(len(self.nu_az))<0.4511734444723442, 14,-14),
+                    np.where(np.random.rand(len(self.mcf['trueE']))<0.4511734444723442, 14,-14),
                    ]
         elif self.name=='oscNext':
-            nu_e         = []
-            nu_az        = []
-            nu_zen       = []
+            true_e       = []
+            true_az      = []
+            true_zen     = []
             reco_e       = []
             reco_az      = []
             reco_zen     = []
@@ -162,9 +163,9 @@ class MCReader(object):
             passed_muon  = []
             passed_lowup = []
             for key in self.mcf.keys():
-                true_e    = np.append(nu_e, self.mcf[key]['MCInIcePrimary.energy'][()])
-                true_az   = np.append(nu_az, self.mcf[key]['MCInIcePrimary.dir.azimuth'][()])
-                true_zen  = np.append(nu_zen, np.arccos(self.mcf[key]['MCInIcePrimary.dir.coszen'][()]))
+                true_e    = np.append(true_e, self.mcf[key]['MCInIcePrimary.energy'][()])
+                true_az   = np.append(true_az, self.mcf[key]['MCInIcePrimary.dir.azimuth'][()])
+                true_zen  = np.append(true_zen, np.arccos(self.mcf[key]['MCInIcePrimary.dir.coszen'][()]))
                 reco_e    = np.append(reco_e, self.mcf[key]['L7_reconstructed_total_energy'][()])
                 reco_az   = np.append(reco_az, self.mcf[key]['L7_reconstructed_azimuth'][()])
                 reco_zen  = np.append(reco_zen, np.arccos(self.mcf[key]['L7_reconstructed_coszen'][()]))
@@ -203,9 +204,3 @@ class MCReader(object):
                        dtype=self._dtypes
                       )
         self.mc_data = arr.view(np.recarray)
-
-if __name__=='__main__':
-    from  sys import argv as args
-    path = args[1]
-    mcr = MCReader(path)
-    print(len(mcr.nu_e))
