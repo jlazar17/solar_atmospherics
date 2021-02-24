@@ -29,6 +29,10 @@ def load_core_data(selection, path):
         data = []
     return data
 
+def check_same_len(mc_data):
+    lst = [len(t[0]) for t in mc_data]
+    return all(ele == lst[0] for ele in lst)
+
 class MCReader(object):
 
     def __init__(self, path=None, name=None, options='00', additional_data=None):
@@ -50,6 +54,8 @@ class MCReader(object):
             else:
                 for data_desc in additional_data:
                     mc_data.append(data_desc)
+        if not check_same_len(mc_data):
+            raise RuntimeError('All data must be the same length')
         arr = np.array([tup for tup in zip(*tuple([t[0] for t in mc_data]))],
                        dtype=[(t[1], t[2]) for t in mc_data]
                       )
@@ -63,9 +69,9 @@ class MCReader(object):
         return self.mc_data[key]
 
     def __add__(self, other):
-        shared_dnames = list(set(self.mc_data.dtype.names) & set(other.mc_data.dtype.names))
+        shared_dnames = list(set(self._mc_data.dtype.names) & set(other._mc_data.dtype.names))
         data          = [(np.append(self._mc_data[name], other._mc_data[name]), name, dtype)
-                         for name, dtype in self.mc_data.dtype.descr
+                         for name, dtype in self._mc_data.dtype.descr
                          if name in shared_dnames
                         ]
         name = '%s-%s' % (self.name, other.name)
