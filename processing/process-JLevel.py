@@ -3,14 +3,13 @@
 
 ##METAPROJECT /data/ana/SterileNeutrino/IC86/HighEnergy/MC/Metaprojects/icerec.XLevel.Noise/build/
 
-import time, sys, math, os.path,subprocess, os
+import sys, os.path,subprocess, os
 from optparse import OptionParser
-from shutil import copyfile
-from os.path import expandvars
 import numpy as np
 
 from I3Tray import *
 from icecube import icetray, dataio, dataclasses
+from icecube.common_variables import hit_multiplicity, hit_statistics, direct_hits
 from icecube.STTools.seededRT.configuration_services import I3DOMLinkSeededRTConfigurationService
 #from icecube import icetray, dataio, dataclasses
 from icecube import TopologicalSplitter
@@ -33,40 +32,15 @@ load('libtruncated_energy')
 module_dir = '/data/user/jlazar/solar/solar_atmospherics/processing/processing_modules/'
 if module_dir not in sys.path:
     sys.path.append(module_dir)
-#from cut_high_energy import CutHighEnergy
+from cut_high_energy import CutHighEnergy
 from get_pulse_names import get_pulse_names
 from initialize_args import initialize_parser
 from is_lowup import IsLowUp
 from renameMCTree import renameMCTree
 from hasTWSRTOfflinePulses import hasTWSRTOfflinePulses
 from fixWeightMap import fixWeightMap
-#from dumbOMSelection import dumbOMSelection
-#from ComputeChargeWeightedDist import ComputeChargeWeightedDist
 from isMuonFilter import IsMuonFilter
-#from splitFrames import splitFrames
-#from afterpulses import afterpulses
-#from precut import precut
-#from basicRecosAlreadyDone import basicRecosAlreadyDone
-#from doExpensiveRecos import doExpensiveRecos
-#from add_basic_reconstructions import add_basic_reconstructions
-#from add_bayesian_reconstruction import add_bayesian_reconstruction
-#from add_paraboloid import add_paraboloid
-#from add_split_reconstructions import add_split_reconstructions
-#from SamePulseChecker import SamePulseChecker
-#from computeSimpleCutVars import computeSimpleCutVars
-#from controls import process_params
-#
-#deepCoreStrings = process_params()['deepCoreStrings']
-#stConfigService = process_params()['stConfigService']
-#i3streams       = process_params()['i3streams']
-#
-#load("bayesian-priors")
-#load("double-muon")
-#load("libmue")
 
-
-start_time = time.time()
-print("Starting ...")
 options,args = initialize_parser()
 
 infile          = options.infile
@@ -139,6 +113,7 @@ else:
         outfile_temp = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/scripts/temp/'+outfile.split('/')[-1]
         spline_path = "/data/ana/SterileNeutrino/IC86/HighEnergy/scripts/jobs/paraboloidCorrectionSpline.dat"
 
+truef=lambda frame: True
 #====================================
 InIcePulses, SRTInIcePulses, SRTInIcePulses_NoDC_Qtot, SRTInIcePulses_NoDC = get_pulse_names(infile)
 #====================================
@@ -147,23 +122,12 @@ tray.AddService("I3GSLRandomServiceFactory","Random") # needed for bootstrapping
 tray.AddModule("I3Reader","reader")(
                 ("FilenameList",infiles)
                 )
-
-#exitStatus=RandomStuff.ExitStatus()
-
 # Remove high energy portion from GENIE simulation to make sure simulation is non-overlapping
 if filetype=='genie':
-    print('cutting high energy')
     tray.AddModule(CutHighEnergy)
 tray.AddModule(renameMCTree, "_renameMCTree", Streams=[icetray.I3Frame.DAQ])
-
 tray.AddModule(IsLowUp & ~IsMuonFilter & hasTWSRTOfflinePulses,"selectValidData")
 tray.AddModule(fixWeightMap,"patchCorsikaWeights")
-
-truef=lambda frame: True
-
-#tray.AddModule(ComputeChargeWeightedDist,"CCWD",Pulses=SRTInIcePulses_NoDC,Track="PoleMPEFitName")
-
-#tray.AddModule(precut,"precut")
 tray.AddModule("I3OrphanQDropper","OrphanQDropper")
 #======================================
 stConfigService = I3DOMLinkSeededRTConfigurationService(
@@ -174,7 +138,6 @@ stConfigService = I3DOMLinkSeededRTConfigurationService(
                      ic_ic_RTTime            =  1000*I3Units.ns, # Default: 1000m.
                      ic_ic_RTRadius          =  150*I3Units.m    # Default: 150m.
                     )
-
 tray.AddModule("I3SeededRTCleaning_RecoPulse_Module", "SRTClean",
                InputHitSeriesMapName  = InIcePulses,
                OutputHitSeriesMapName = SRTInIcePulses,
@@ -183,7 +146,6 @@ tray.AddModule("I3SeededRTCleaning_RecoPulse_Module", "SRTClean",
                NHitsThreshold         = 2,
                Streams                = [icetray.I3Frame.DAQ]
               )
-
 tray.AddModule("I3TopologicalSplitter", "TTrigger",
                SubEventStreamName = 'TTrigger',
                InputName          = "SRTInIcePulses",
@@ -195,7 +157,6 @@ tray.AddModule("I3TopologicalSplitter", "TTrigger",
                TimeCone           = 1000, #Default=1000 ns
                SaveSplitCount     = True
               )
-
 tray.AddSegment(CoincSuite.Complete, "CoincSuite Recombinations",
                 SplitPulses = "TTPulses",
                 SplitName='TTrigger',
@@ -228,25 +189,20 @@ tray.AddSegment(lilliput.segments.I3SinglePandelFitter,
                 pulses='TTPulses',
                 seeds=["SPEFit4_masked"],
                )
-
-from icecube.common_variables import hit_multiplicity, hit_statistics, direct_hits
 tray.AddSegment(hit_multiplicity.I3HitMultiplicityCalculatorSegment, 'TTPulses_HitMultiplicity',
                 PulseSeriesMapName = 'TTPulses',
                 OutputI3HitMultiplicityValuesName = 'TTPulses'+'_HitMultiplicity',
                 BookIt = False,
                 If=lambda frame: frame['I3EventHeader'].sub_event_stream=='TTrigger',
                )
-
 tray.AddSegment(hit_statistics.I3HitStatisticsCalculatorSegment, 'HitStatistics',
                 PulseSeriesMapName = 'TTPulses',
                 OutputI3HitStatisticsValuesName = 'TTPulses_HitStatistics',
                 BookIt = False,
                 If=lambda frame: frame['I3EventHeader'].sub_event_stream=='TTrigger',
                )
-
 ### I3DirectHitsDefinitions ### this should move out to wimp globals
-#dh_defs = direct_hits.default_definitions ###If you decide to use default definitions
-dh_definitions = [ ###If using solarWimp79 Definitions 
+dh_definitions = [ 
                   direct_hits.I3DirectHitsDefinition("ClassA", -15*I3Units.ns, +25*I3Units.ns),
                   direct_hits.I3DirectHitsDefinition("ClassB", -15*I3Units.ns, +75*I3Units.ns),
                   direct_hits.I3DirectHitsDefinition("ClassC", -15*I3Units.ns, +150*I3Units.ns),
@@ -278,119 +234,19 @@ tray.AddModule('I3TruncatedEnergy',
                UseRDE                 = True,
                If                     = lambda frame: frame['I3EventHeader'].sub_event_stream=='TTrigger',
               )
-    
-
 tray.AddModule("I3Writer","writer",
-  streams = [icetray.I3Frame.DAQ,icetray.I3Frame.Physics, icetray.I3Frame.Geometry, icetray.I3Frame.Calibration, icetray.I3Frame.DetectorStatus], #DANGER
-  filename = outfile,)
-
+               streams = [icetray.I3Frame.DAQ,
+                          icetray.I3Frame.Physics, 
+                          icetray.I3Frame.Geometry, 
+                          icetray.I3Frame.Calibration, 
+                          icetray.I3Frame.DetectorStatus
+                         ],
+               filename = outfile,
+              )
 tray.AddModule("TrashCan","trashcan")
-  
 if (options.nFrames==0):
   tray.Execute()
 else:
   tray.Execute(options.nFrames)
-  
 tray.Finish()
 os.remove(tmpfile)
-#tray.AddModule("I3SeededRTCleaning_RecoPulse_Module", "SRTClean",
-#        InputHitSeriesMapName  = InIcePulses,
-#        OutputHitSeriesMapName = SRTInIcePulses,
-#        STConfigService        = stConfigService,
-#        #SeedProcedure         = "HLCCoreHits",
-#        NHitsThreshold         = 2,
-#        Streams                = [icetray.I3Frame.DAQ]
-#        )
-#
-#tray.AddModule("I3TopologicalSplitter","TTrigger",
-#        SubEventStreamName = "TTrigger", #Spencer -- Is this ok?? I was getting warnigngs...
-#        InputName          = SRTInIcePulses,
-#        OutputName         = "TTPulses",
-#        Multiplicity       = 4,
-#        TimeWindow         = 4000*I3Units.ns,
-#        TimeCone           = 800*I3Units.ns,
-#        SaveSplitCount     = True
-#        )
-#
-#tray.AddModule("AfterPulseSpotter","Afterpulses")(
-#        ("StreamName","TTrigger"),
-#        ("Pulses","TTPulses")
-#        )
-#
-#tray.AddModule(SamePulseChecker,"SPC")
-#
-#add_basic_reconstructions(tray,"_TT","TTPulses",splitFrames & ~afterpulses & ~basicRecosAlreadyDone)
-#
-##======================================
-## Compute some simple cut variables
-#computeSimpleCutVars(tray,splitFrames & ~afterpulses)
-#
-##======================================
-## Compute some expensive cut variables
-#add_bayesian_reconstruction(tray,"TTPulses",splitFrames & ~afterpulses & doExpensiveRecos,"TrackFit")
-#add_paraboloid(tray,"TTPulses",splitFrames & ~afterpulses & doExpensiveRecos,"TrackFit")
-#add_split_reconstructions(tray,"TTPulses",splitFrames & ~afterpulses & doExpensiveRecos,"TrackFit")
-#
-##======================================
-## Write output
-#
-#tray.AddModule("ParaboloidSigmaCorrector","extractSigma")(
-#                ("CorrectionSplinePath",spline_path),
-#                ("ParaboloidParameters","TrackFitParaboloidFitParams"),
-#                ("NChanSource",'NChanSource'), # with DeepCore!
-#                ("Output","CorrectedParaboloidSigma"),)
-#
-##outputKeys = ["GenerationSpec",'MuEx']
-#
-#if options.move == 'True':
-#        tray.AddModule("I3Writer","i3writer")(
-#                ("Filename",outfile_temp),
-#                ("Streams",i3streams)
-#                )
-#        if options.cut == 'True':
-#                tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
-#                        ("tableservice",hdfwriter.I3HDFTableService(outfile_temp.replace('.i3.bz2','_golden.h5'))),
-#                        ("SubEventStreams",["TTrigger"]),
-#                        ("keys",outputKeys)
-#                        )
-#        else:
-#                pass
-#else:
-#        if osg =='True':
-#                print('You need options.move to be True if using the OSG')
-#        else:
-#                tray.AddModule("I3Writer","i3writer")(
-#                        ("Filename",outfile),
-#                        ("Streams",i3streams)
-#                        )
-#                if options.cut == 'True':
-#                        tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
-#                                ("tableservice",hdfwriter.I3HDFTableService(outfile_temp.replace('.i3.bz2','_golden.h5'))),
-#                                ("SubEventStreams",["TTrigger"]),
-#                                ("keys",outputKeys)
-#                                )
-#                else:
-#                        pass
-#
-#if(options.nFrames==0):
-#        tray.Execute()
-#else:
-#        tray.Execute(options.nFrames)
-#tray.Finish()
-#
-## If the file finished processing, move it to the storage location.
-#
-#if options.move == 'True':
-#        if osg == "True":
-#                copy_to_NPX('gsiftp://gridftp.icecube.wisc.edu' + outfile)
-#                if options.cut == 'True':
-#                        copy_to_NPX('gsiftp://gridftp.icecube.wisc.edu' + outfile.replace('.i3.bz2','_golden.h5'))
-#        else:
-#                os.system(str("mv "+str(outfile_temp) + " " +str(outfile)))
-#                if options.cut == 'True':
-#                        os.system(str("mv "+str(outfile_temp.replace('.i3.bz2','_golden.h5')) + " " +str(outfile.replace('.i3.bz2','_golden.h5'))))
-#else:
-#        if osg =="True":
-#                print('You need options.move to be True if using the OSG')
-#        pass
-##exit(exitStatus.status)
