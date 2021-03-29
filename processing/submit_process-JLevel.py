@@ -20,21 +20,15 @@ def initialize_parser():
 
 options, args = initialize_parser()
 
-path   = "/home/jlazar/condor_logs/process-JLevel"
+path   = "/home/jlazar/condor_logs/process-JLevel/"
 error  = "%s/error" % path
 output = "%s/output" % path
 log    = "%s/log" % path
 submit = "%s/submit" % path
 
-xlines = ["request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 2048 * pow(2, NumJobStarts + 1)",
-          "periodic_release = (HoldReasonCode =?= 21 && HoldReasonSubCode =?= 1001) || HoldReasonCode =?= 21",
-          "periodic_remove = (JobStatus =?= 5 && (HoldReasonCode =!= 34 && HoldReasonCode =!= 21)) || (RequestMemory > 13192)"
-         ]
-
-
 dagman = pycondor.Dagman("process-JLevel_%s_dag" % options.simname, submit=submit, verbose=2)
 run    = pycondor.Job("process-JLevel_%s" % options.simname, 
-                      "/data/user/jlazar/solar_atmospherics/processing/process-JLevel.sh", 
+                      "/data/user/jlazar/solar/solar_atmospherics/processing/process-JLevel.sh", 
                       error=error, 
                       output=output, 
                       log=log, 
@@ -43,11 +37,10 @@ run    = pycondor.Job("process-JLevel_%s" % options.simname,
                       notification="never",
                       dag=dagman,
                       verbose=2,
-                      extra_lines=xlines
                      )
 
 njobs = options.njobs
-infiles = glob('/data/user/jlazar/solar_atmospherics/processing/data/%s/input/x*' % options.simname)
+infiles = glob('/data/user/jlazar/solar/solar_atmospherics/processing/data/%s/i3/input/x*' % options.simname)
 for i in range(njobs):
     slc = slice(i, None, njobs)
     run.add_arg(' '.join(infiles[slc]))

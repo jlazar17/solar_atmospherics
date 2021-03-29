@@ -10,23 +10,25 @@ from icecube import dataclasses, icetray
 
 @selector
 def precut(frame):
-        PoleMPEFitName=frame['PoleMPEFitName'].value
-        if(not frame.Has(PoleMPEFitName) or not frame.Has(PoleMPEFitName+"_AvgDistQ") or not frame.Has('SRTInIcePulses_NoDC_Qtot')):
-                return(False)
-        
-        track = frame.Get(PoleMPEFitName)
-        qtot = frame.Get('SRTInIcePulses_NoDC_Qtot').value
-        qwDist = frame.Get(PoleMPEFitName+"_AvgDistQ").value
-
-        if(track.dir.zenith > (math.pi / 2.)):
-                if(qtot < 100. and qwDist > 200.):
-                        return(False)
-                return(True)
-        else:
-                c = math.cos(track.dir.zenith)
-                lq = 0
-                if(qtot > 0.0):
-                        lq = math.log10(qtot)
-                if(c > .2):
-                        return(lq >= (0.6*(c-0.5) + 2.5))
-                return(True)
+    PoleMPEFitName=frame['PoleMPEFitName'].value
+    print(PoleMPEFitName)
+    if(not frame.Has(PoleMPEFitName) or not frame.Has(PoleMPEFitName+"_AvgDistQ") or not frame.Has('SRTInIcePulses_NoDC_Qtot')):
+        return(False)
+    else:
+        return True
+#    track = frame.Get(PoleMPEFitName)
+#    qtot = frame.Get('SRTInIcePulses_NoDC_Qtot').value
+#    qwDist = frame.Get(PoleMPEFitName+"_AvgDistQ").value
+#
+#    if(track.dir.zenith > (math.pi / 2.)):
+#        if(qtot < 100. and qwDist > 200.):
+#            return(False)
+#        return(True)
+#    else:
+#        c = math.cos(track.dir.zenith)
+#        lq = 0
+#        if(qtot > 0.0):
+#            lq = math.log10(qtot)
+#        if(c > .2):
+#            return(lq >= (0.6*(c-0.5) + 2.5))
+#        return(True)

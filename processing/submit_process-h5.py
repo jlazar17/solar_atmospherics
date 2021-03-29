@@ -26,7 +26,7 @@ output = "%s/output" % path
 log    = "%s/log" % path
 submit = "%s/submit" % path
 
-xlines = ["request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 2048 * pow(2, NumJobStarts + 1)",
+xlines = ["request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 1024 * pow(2, NumJobStarts + 1)",
           "periodic_release = (HoldReasonCode =?= 21 && HoldReasonSubCode =?= 1001) || HoldReasonCode =?= 21",
           "periodic_remove = (JobStatus =?= 5 && (HoldReasonCode =!= 34 && HoldReasonCode =!= 21)) || (RequestMemory > 13192)"
          ]
@@ -34,7 +34,7 @@ xlines = ["request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 2048 
 
 dagman = pycondor.Dagman("process-h5_%s_dag" % options.simname, submit=submit, verbose=2)
 run    = pycondor.Job("process-h5_%s" % options.simname, 
-                      "/data/user/jlazar/solar_atmospherics/processing/process-h5.sh", 
+                      "/data/user/jlazar/solar/solar_atmospherics/processing/process-h5.sh", 
                       error=error, 
                       output=output, 
                       log=log, 
@@ -47,7 +47,7 @@ run    = pycondor.Job("process-h5_%s" % options.simname,
                      )
 
 njobs = options.njobs
-infiles = glob('/data/user/jlazar/solar_atmospherics/processing/data/%s/h5/input/x*' % options.simname)
+infiles = glob('/data/user/jlazar/solar/solar_atmospherics/processing/data/%s/h5/input/x*' % options.simname)
 for i in range(njobs):
     slc = slice(i, None, njobs)
     run.add_arg(' '.join(infiles[slc]))
