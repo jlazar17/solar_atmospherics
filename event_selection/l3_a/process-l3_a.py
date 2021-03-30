@@ -52,10 +52,7 @@ elif 'nancy' in infile:
     gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
 elif 'exp' in infile:
     filetype = 'exp_data'
-    print('/'.join(infile.lower().split('/')[:-1]))
     gcdfile  = glob('/'.join(infile.split('/')[:-1])+'/*GCD*')[0]
-    print(gcdfile)
-    
 if not callable(options.outfile):
     outfile = options.outfile
 else:
@@ -63,8 +60,6 @@ else:
 outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
 # save tempfile
 tmpfile = outfile.replace('.i3.zst', '.npy')
-np.save(tmpfile, [])
-
 infiles = [gcdfile, infile]
 outfile_temp = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/scripts/temp/'+outfile.split('/')[-1]
 spline_path = "/data/ana/SterileNeutrino/IC86/HighEnergy/scripts/jobs/paraboloidCorrectionSpline.dat"
