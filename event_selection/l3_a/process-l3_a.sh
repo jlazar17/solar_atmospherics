@@ -2,7 +2,7 @@
 
 export PYTHONPATH=$PYTHONPATH:/data/user/jlazar/.pylib
 source /home/jlazar/golemsolarwimp.sh
-BASEDIR=/data/user/jvillareal/
+BASEDIR=/data/user/jlazar/solar/
 
 for INPUTFILE in "$@";
 do

@@ -60,6 +60,7 @@ else:
 outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
 # save tempfile
 tmpfile = outfile.replace('.i3.zst', '.npy')
+np.save(tmpfile, [])
 infiles = [gcdfile, infile]
 outfile_temp = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/scripts/temp/'+outfile.split('/')[-1]
 spline_path = "/data/ana/SterileNeutrino/IC86/HighEnergy/scripts/jobs/paraboloidCorrectionSpline.dat"
@@ -241,5 +242,5 @@ if (options.nFrames==0):
 else:
   tray.Execute(options.nFrames)
 tray.Finish()
-os.remove(tmpfile)
 print(time.time()-t0)
+os.remove(tmpfile)

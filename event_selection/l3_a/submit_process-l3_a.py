@@ -40,7 +40,9 @@ run    = pycondor.Job("process-l3_a",
                      )
 
 njobs = options.njobs
-infiles = glob('/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/input/x*')
+infiles = glob('/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/input/%s/x*' options.simname)
+if options.simname==data:
+    infiles = infiles[::10] # Only run on 10% of the data
 for i in range(njobs):
     slc = slice(i, None, njobs)
     run.add_arg(' '.join(infiles[slc]))
