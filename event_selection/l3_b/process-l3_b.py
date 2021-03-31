@@ -22,7 +22,7 @@ from icecube.common_variables import track_characteristics
 load('libtruncated_energy')
 load("bayesian-priors")
 
-module_dir = '/data/user/jvillarreal/solar_atmospherics/event_selection/l3_b/modules'
+module_dir = '/data/user/jvillarreal/sa_git/solar_atmospherics/event_selection/l3_b/modules'
 if module_dir not in sys.path:
     sys.path.append(module_dir)
 from cut_high_energy import CutHighEnergy
@@ -56,6 +56,7 @@ if not callable(options.outfile):
 else:
     outfile = options.outfile(infile)
 outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
+print(outfile)
 # save tempfile
 tmpfile = outfile.replace('.i3.zst', '.npy')
 np.save(tmpfile, [])

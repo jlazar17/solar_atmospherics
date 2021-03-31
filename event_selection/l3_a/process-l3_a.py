@@ -3,7 +3,9 @@ from optparse import OptionParser
 import numpy as np
 from glob import glob
 
+print('loading I3tray...')
 from I3Tray import *
+print('loading icecube...')
 from icecube import icetray, dataio, dataclasses
 from icecube.common_variables import hit_multiplicity, hit_statistics, direct_hits
 from icecube.STTools.seededRT.configuration_services import I3DOMLinkSeededRTConfigurationService
@@ -23,7 +25,8 @@ from icecube.common_variables import track_characteristics
 load('libtruncated_energy')
 load("bayesian-priors")
 
-module_dir = '/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/modules'
+print('loading modules...')
+module_dir = '/data/user/jvillarreal/sa_git/solar_atmospherics/event_selection/l3_a/modules'
 if module_dir not in sys.path:
     sys.path.append(module_dir)
 from cut_high_energy import CutHighEnergy
@@ -37,10 +40,9 @@ from fixWeightMap import fixWeightMap
 from isMuonFilter import IsMuonFilter
 
 t0 = time.time()
-
+print('parsing...')
 options, args = initialize_parser()
 infile        = options.infile
-
 if 'corsika' in infile:
     filetype = 'corsika'
     gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz'
