@@ -1,5 +1,5 @@
 from I3Tray import NaN
-def fixWeightMap(frame):
+def fix_weight_map(frame):
         if(not frame.Has("CorsikaWeightMap")):
                 return
         cwm=frame["CorsikaWeightMap"]

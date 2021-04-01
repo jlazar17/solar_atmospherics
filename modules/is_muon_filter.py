@@ -1,8 +1,8 @@
-from selector import selector
+from .selector import selector
 from icecube import dataclasses
 
 @selector
-def IsMuonFilter(frame):
+def is_muon_filter(frame):
         if not frame.Has('FilterMask'):
                 return(False)
         filterMask = filterMask = frame['FilterMask']

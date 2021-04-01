@@ -1,6 +1,6 @@
 from I3Tray import NaN
 from icecube import dataclasses
-def L3b_cuts(frame):
+def l3b_cuts(frame):
     if frame['I3EventHeader'].sub_event_stream!='TTrigger':
         return True
 

@@ -1,8 +1,8 @@
-from selector import selector
+from .selector import selector
 from icecube import dataclasses
 
 @selector
-def IsLowUp(frame):
+def is_lowup_filter(frame):
     if not frame.Has('FilterMask'):
         return(False)
     filter_mask = filter_mask = frame['FilterMask']

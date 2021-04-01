@@ -2,6 +2,7 @@ from optparse import OptionParser
 import os
 def make_outfile_name(infile):
     infile  = infile.replace('=', '').replace('\\', '')
+    print(infile)
     if 'nancy001' in infile:
         outdir    = '/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/data/nancy/i3/'
         nutype    = infile.split('/')[9]
@@ -29,8 +30,11 @@ def make_outfile_name(infile):
         outdir    = '/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/data/genie/h5/'
         fname  = infile.split('/')[-1].replace('i3.zst', 'h5')
         outfile = '%s/%s' % (outdir, fname)
-        
-
+    elif 'exp' in infile:
+        print(1)
+        outdir    = '/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/data/exp_data/i3/'
+        fname  = infile.split('/')[-1]
+        outfile = '%s/%s' % (outdir, fname)
     else:
         quit()
     if not os.path.isdir(outdir):

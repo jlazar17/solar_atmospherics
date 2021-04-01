@@ -26,9 +26,14 @@ output = "%s/output" % path
 log    = "%s/log" % path
 submit = "%s/submit" % path
 
+xlines = ["request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 1024 * pow(2, NumJobStarts + 1)",
+          "periodic_release = (HoldReasonCode =?= 21 && HoldReasonSubCode =?= 1001) || HoldReasonCode =?= 21",
+          "periodic_remove = (JobStatus =?= 5 && (HoldReasonCode =!= 34 && HoldReasonCode =!= 21)) || (RequestMemory > 13192)"
+         ]
+
 dagman = pycondor.Dagman("process-l3_a_dag", submit=submit, verbose=2)
 run    = pycondor.Job("process-l3_a", 
-                      "/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/process-l3_a.sh", 
+                      "/data/user/jvillarreal/sa_git/solar_atmospherics/event_selection/l3_a/process-l3_a.sh", 
                       error=error, 
                       output=output, 
                       log=log, 
@@ -37,11 +42,12 @@ run    = pycondor.Job("process-l3_a",
                       notification="never",
                       dag=dagman,
                       verbose=2,
+		      extra_lines=xlines
                      )
 
 njobs = options.njobs
-infiles = glob('/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/input/%s/x*' options.simname)
-if options.simname==data:
+infiles = glob('/data/user/jvillarreal/sa_git/solar_atmospherics/event_selection/l3_a/input/%s/x*' % options.simname)
+if options.simname=='data':
     infiles = infiles[::10] # Only run on 10% of the data
 for i in range(njobs):
     slc = slice(i, None, njobs)
