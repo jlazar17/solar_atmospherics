@@ -1,7 +1,8 @@
 from I3Tray import I3Tray
 from icecube import tableio, hdfwriter, icetray, dataclasses
 
-from solar_atmospherics.modules import rename_out_vars
+from .rename_out_vars import rename_out_vars
+from .cut_bad_fits import cut_bad_fits
 
 def make_outfile_name(infile):
     outfile = infile.replace('i3.zst', 'h5').replace('i3', 'h5')
@@ -47,10 +48,10 @@ class H5Writer(object):
         self.i3file   = i3file
         self.gcdfile  = gcdfile
         self.level    = level
-        self.infiles  = [gcdfile, infile]
+        self.infiles  = [gcdfile, i3file]
         self.outfile  = None
-        self_.set_simnname()
-        se;f._set_outkeys()
+        self._set_simnname()
+        self._set_outkeys()
 
     def set_outfile(self, outfile):
         if not callable(outfile):
@@ -67,7 +68,7 @@ class H5Writer(object):
             self.corsika_set = None
         elif 'corsika' in self.i3file:
             self.fluxname    = 'corsika'
-            self.corsika_set = int(options.infile.split('.')[-4])
+            self.corsika_set = int(self.i3file.split('.')[-4])
         elif 'exp' in self.i3file:
             self.fluxname    = 'exp_data'
             self.corsika_set = None
@@ -75,18 +76,19 @@ class H5Writer(object):
             raise ValueError(f'unable to determine simname from infile {self.i3file}')
 
     def _set_outkeys(self):
-        from .outkeys import outkeys
-        return outkeys_dict[self.level]
+        from .outkeys import outkeys_dict
+        self.outkeys =  outkeys_dict[self.level]
     
     def dump_h5(self):
         icetray.set_log_level(icetray.I3LogLevel.LOG_ERROR)
         tray = I3Tray()
         tray.AddModule("I3Reader","reader")(("FilenameList", self.infiles))
-        tray.AddModule(RenameOutVars, geometry=None, fluxname=self.fluxname, corsika_set=self.corsika_set)
+        tray.AddModule(cut_bad_fits, 'bad_fit_cutter') # This should not be in here long term
+        tray.AddModule(rename_out_vars, geometry=None, fluxname=self.fluxname, corsika_set=self.corsika_set)
         tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
-                ("tableservice",hdfwriter.I3HDFTableService(h5file)),
+                ("tableservice",hdfwriter.I3HDFTableService(self.outfile)),
                 ("SubEventStreams",["TTrigger"]),
-                ("keys",h5outkeys)
+                ("keys",self.outkeys)
                 )
         tray.Execute()
         tray.Finish()

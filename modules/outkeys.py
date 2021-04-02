@@ -35,7 +35,7 @@ l3_b_keys = ['ZTravel',
             'BayesRatio'
            ]
 
-l3_a_ekys = ['ZTravel',
+l3_a_keys = ['ZTravel',
             'oneweight',
             'COGZ',
             'COGZSigma',
@@ -51,6 +51,6 @@ l3_a_ekys = ['ZTravel',
            ]
 
 outkeys_dict = {
-                'l3_a':l3_a_ekys,
-                'l3_b':l3_b_ekys,
+                'l3_a':l3_a_keys,
+                'l3_b':l3_b_keys,
                }

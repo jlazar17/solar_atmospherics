@@ -48,7 +48,7 @@ def rename_out_vars(frame, geometry, fluxname, corsika_set):
     ADir         = frame.Get('MPEFit_DirectHitsClassA')
     BDir         = frame.Get('MPEFit_DirectHitsClassB')
     CDir         = frame.Get('MPEFit_DirectHitsClassC')
-    DDir         = frame.Get('MPEFit_DirectHitsClassD')
+    #DDir         = frame.Get('MPEFit_DirectHitsClassD')
     EDir         = frame.Get('MPEFit_DirectHitsClassE')
 
     
@@ -91,10 +91,10 @@ def rename_out_vars(frame, geometry, fluxname, corsika_set):
     frame.Put('NDirPulse_C', dataclasses.I3Double(CDir.n_dir_pulses))
     frame.Put('NDirDOM_C',   dataclasses.I3Double(CDir.n_dir_doms))
     frame.Put('NDirStr_C',   dataclasses.I3Double(CDir.n_dir_strings))
-    frame.Put('LDir_D',      dataclasses.I3Double(DDir.dir_track_length))
-    frame.Put('NDirPulse_D', dataclasses.I3Double(DDir.n_dir_pulses))
-    frame.Put('NDirDOM_D',   dataclasses.I3Double(DDir.n_dir_doms))
-    frame.Put('NDirStr_D',   dataclasses.I3Double(DDir.n_dir_strings))
+    #frame.Put('LDir_D',      dataclasses.I3Double(DDir.dir_track_length))
+    #frame.Put('NDirPulse_D', dataclasses.I3Double(DDir.n_dir_pulses))
+    #frame.Put('NDirDOM_D',   dataclasses.I3Double(DDir.n_dir_doms))
+    #frame.Put('NDirStr_D',   dataclasses.I3Double(DDir.n_dir_strings))
     frame.Put('LDir_E',      dataclasses.I3Double(EDir.dir_track_length))
     frame.Put('NDirPulse_E', dataclasses.I3Double(EDir.n_dir_pulses))
     frame.Put('NDirDOM_E',   dataclasses.I3Double(EDir.n_dir_doms))
