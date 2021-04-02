@@ -85,7 +85,6 @@ if not callable(options.outfile):
 else:
     outfile = options.outfile(infile)
 outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
-print(outfile)
 # save tempfile
 tmpfile = outfile.replace('.i3.zst', '.npy')
 np.save(tmpfile, [])
