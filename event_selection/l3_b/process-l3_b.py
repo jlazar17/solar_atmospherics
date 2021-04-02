@@ -2,7 +2,9 @@ import sys, os, time
 from optparse import OptionParser
 import numpy as np
 
+print('loading it,,,')
 from I3Tray import *
+print('loading ic,,,')
 from icecube import icetray, dataio, dataclasses
 from icecube.common_variables import hit_multiplicity, hit_statistics, direct_hits
 from icecube.STTools.seededRT.configuration_services import I3DOMLinkSeededRTConfigurationService
@@ -22,19 +24,39 @@ from icecube.common_variables import track_characteristics
 load('libtruncated_energy')
 load("bayesian-priors")
 
-module_dir = '/data/user/jvillarreal/sa_git/solar_atmospherics/event_selection/l3_b/modules'
-if module_dir not in sys.path:
-    sys.path.append(module_dir)
-from cut_high_energy import CutHighEnergy
-from get_pulse_names import get_pulse_names
-from initialize_args import initialize_parser
-from cut_bad_fits import cut_bad_fits
-from is_lowup import IsLowUp
-from L3b_cuts import L3b_cuts
-from renameMCTree import renameMCTree
-from hasTWSRTOfflinePulses import hasTWSRTOfflinePulses
-from fixWeightMap import fixWeightMap
-from isMuonFilter import IsMuonFilter
+print('loading modules,,,')
+from solar_atmospherics.modules import get_pulse_names, cut_bad_fits, cut_high_energy, is_lowup_filter, is_muon_filter, rename_MC_tree, has_TWSRT_offline_pulses, fix_weight_map, figure_out_gcd
+from make_outfile_name import make_outfile_name
+
+def initialize_parser():
+    parser = OptionParser()
+    parser.add_option('-n', '--nFrames', 
+                      dest='nFrames',
+                      default=0, 
+                      type=int, 
+                      help='How many frames to do this for. Default do all frames.')
+    parser.add_option('-g', '--gcdfile',
+                      dest='gcdfile',
+                      type=str,
+                      default =''
+                     )
+    parser.add_option("--ice_model", 
+                      dest="ice_model", 
+                      default='spice_3.2',
+                      type=str, 
+                      help='Ignore this'
+                     )
+    parser.add_option("-i", "--infile", 
+                      dest="infile",
+                      type=str,
+                      default = '/data/sim/IceCube/2016/filtered/level2/neutrino-generator/nancy001/NuMu/low_energy/hole_ice/p1=0.3_p2=0.0/10/l2_00009414.i3.zst',
+                     )
+    parser.add_option("-o", "--outfile",
+                      dest="outfile",
+                      default=make_outfile_name
+                     )
+    options,args = parser.parse_args()
+    return options, args
 
 t0 = time.time()
 
