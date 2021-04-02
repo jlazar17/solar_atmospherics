@@ -25,7 +25,7 @@ from icecube.common_variables import track_characteristics
 load('libtruncated_energy')
 load("bayesian-priors")
 
-from solar_atmospherics.modules import get_pulse_names, cut_bad_fits, cut_high_energy, is_lowup_filter, is_muon_filter, rename_MC_tree, has_TWSRT_offline_pulses, fix_weight_map
+from solar_atmospherics.modules import get_pulse_names, cut_bad_fits, cut_high_energy, is_lowup_filter, is_muon_filter, rename_MC_tree, has_TWSRT_offline_pulses, fix_weight_map, figure_out_gcd
 from make_outfile_name import make_outfile_name
 
 def initialize_parser():
@@ -38,7 +38,7 @@ def initialize_parser():
     parser.add_option('-g', '--gcdfile',
                       dest='gcdfile',
                       type=str,
-                      default ='/data/ana/SterileNeutrino/IC86/HighEnergy/MC/Systematics/Noise/GeoCalibDetectorStatus_AVG_Fit_55697-57531_SPE_PASS2_Raw.i3.gz'
+                      default =''
                      )
     parser.add_option("--ice_model", 
                       dest="ice_model", 
@@ -62,18 +62,19 @@ t0 = time.time()
 print('parsing...')
 options, args = initialize_parser()
 infile        = options.infile
+if options.gcdfile=='':
+    gcdfile = figure_out_gcd(infile)
+else:
+    gcdfile = options.gcdfile
+
 if 'corsika' in infile:
     filetype = 'corsika'
-    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz'
 elif 'genie' in infile:
     filetype = 'genie'
-    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
 elif 'nancy' in infile:
     filetype = 'nancy'
-    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
 elif 'exp' in infile:
     filetype = 'exp_data'
-    gcdfile  = glob('/'.join(infile.split('/')[:-1])+'/*GCD*')[0]
 if not callable(options.outfile):
     outfile = options.outfile
 else:
@@ -83,10 +84,7 @@ outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
 tmpfile = outfile.replace('.i3.zst', '.npy')
 np.save(tmpfile, [])
 infiles = [gcdfile, infile]
-outfile_temp = '/data/ana/SterileNeutrino/IC86/HighEnergy/MC/scripts/temp/'+outfile.split('/')[-1]
-spline_path = "/data/ana/SterileNeutrino/IC86/HighEnergy/scripts/jobs/paraboloidCorrectionSpline.dat"
 icetray.set_log_level(icetray.I3LogLevel.LOG_ERROR)
-truef=lambda frame: True
 #====================================
 InIcePulses, SRTInIcePulses, SRTInIcePulses_NoDC_Qtot, SRTInIcePulses_NoDC = get_pulse_names(infile)
 #====================================
