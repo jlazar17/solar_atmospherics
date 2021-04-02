@@ -1,7 +1,10 @@
 import sys, os, time
 from optparse import OptionParser
 import numpy as np
+sys.path.append('/data/user/jvillarreal/sa_git/')
+sys.path.append('/data/user/jlazar/solar/')
 
+from glob import glob
 print('loading it,,,')
 from I3Tray import *
 print('loading ic,,,')
@@ -65,13 +68,17 @@ infile        = options.infile
 
 if 'corsika' in infile:
     filetype = 'corsika'
-    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz'
 elif 'genie' in infile:
     filetype = 'genie'
-    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
 elif 'nancy' in infile:
     filetype = 'nancy'
-    gcdfile = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
+elif 'exp' in infile:
+    filetype = 'exp_data'
+    
+if options.gcdfile=='':
+    gcdfile = figure_out_gcd(infile)
+else:
+    gcdfile = options.gcdfile
     
 if not callable(options.outfile):
     outfile = options.outfile
