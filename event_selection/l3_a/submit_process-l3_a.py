@@ -6,12 +6,7 @@ from optparse import OptionParser
 
 def initialize_parser():
     parser = OptionParser()
-    parser.add_option('--simname', dest='simname', type=str, default='nancy')
-    #parser.add_option("-i", "--indir",
-    #                  dest="indir",
-    #                  type=str,
-    #                  default = '/data/sim/IceCube/2016/filtered/level2/neutrino-generator/nancy001/NuMu/medium_energy/hole_ice/p1=0.3_p2=0.0/2/'
-    #                 )
+    parser.add_option('--simname', dest='simname', type=str, default='all')
     parser.add_option("-o", "--outfile", dest="outfile", type=str, default='')
     parser.add_option('-n', '--njobs', dest='njobs', type=int, default=20)
 
@@ -31,8 +26,8 @@ xlines = ["request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 1024 
           "periodic_remove = (JobStatus =?= 5 && (HoldReasonCode =!= 34 && HoldReasonCode =!= 21)) || (RequestMemory > 13192)"
          ]
 
-dagman = pycondor.Dagman("process-l3_a_dag", submit=submit, verbose=2)
-run    = pycondor.Job("process-l3_a", 
+dagman = pycondor.Dagman("process-l3_a_%s_dag" % options.simname, submit=submit, verbose=2)
+run    = pycondor.Job("process-l3_a_%s" % options.simname, 
                       "/data/user/jvillarreal/sa_git/solar_atmospherics/event_selection/l3_a/process-l3_a.sh", 
                       error=error, 
                       output=output, 
@@ -46,7 +41,7 @@ run    = pycondor.Job("process-l3_a",
                      )
 
 njobs = options.njobs
-infiles = glob('/data/user/jvillarreal/sa_git/solar_atmospherics/event_selection/l3_a/input/%s/x*' % options.simname)
+infiles = glob('/data/user/jlazar/solar/solar_atmospherics/event_selection/l3_a/input/i3/%s/x*' % options.simname)
 if options.simname=='data':
     infiles = infiles[::10] # Only run on 10% of the data
 for i in range(njobs):
