@@ -1,1 +1,0 @@
-/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/input/input_nancy.txt
