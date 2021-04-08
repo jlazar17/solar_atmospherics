@@ -69,7 +69,7 @@ def rename_out_vars(frame, geometry, fluxname, corsika_set):
         oneweight    = frame['I3MCWeightDict']['OneWeight']
         
     elif fluxname=='corsika':
-        from weight_tool import weighter_corsika
+        from .weight_tool import weighter_corsika
         weighter_corsika(frame)
         energy       = frame['CorsikaWeightMap']['PrimaryEnergy']
         ptype        = frame['CorsikaWeightMap']['PrimaryType']

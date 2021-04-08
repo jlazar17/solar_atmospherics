@@ -5,9 +5,7 @@ sys.path.append('/data/user/jvillarreal/sa_git/')
 sys.path.append('/data/user/jlazar/solar/')
 
 from glob import glob
-print('loading it,,,')
 from I3Tray import *
-print('loading ic,,,')
 from icecube import icetray, dataio, dataclasses
 from icecube.common_variables import hit_multiplicity, hit_statistics, direct_hits
 from icecube.STTools.seededRT.configuration_services import I3DOMLinkSeededRTConfigurationService
@@ -27,7 +25,6 @@ from icecube.common_variables import track_characteristics
 load('libtruncated_energy')
 load("bayesian-priors")
 
-print('loading modules,,,')
 from solar_atmospherics.modules import get_pulse_names, cut_bad_fits, cut_high_energy, is_lowup_filter, is_muon_filter, rename_MC_tree, has_TWSRT_offline_pulses, fix_weight_map, figure_out_gcd
 from make_outfile_name import make_outfile_name
 

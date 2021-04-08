@@ -23,7 +23,7 @@ def get_data_gcd(infile):
 
 def figure_out_gcd(infile):
     if 'corsika' in infile.lower():
-        corsika_set = infile.split('.')[-4]
+        corsika_set = int(infile.split('.')[-4])
         gcd_file = corsika_gcdc_dict[corsika_set]
     elif 'genie' in infile.lower():
         gcd_file = "/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz"

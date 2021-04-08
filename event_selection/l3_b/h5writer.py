@@ -35,6 +35,8 @@ if __name__=='__main__':
     options, args = initialize_parser()
     level = 'l3_b'
     if 'i3.zst' in options.infile:
+        import time
+        t0 = time.time()
         infile = options.infile
         if options.outfile=='':
             outfile = infile.replace('i3.zst', 'h5').replace('i3', 'h5')
@@ -44,13 +46,10 @@ if __name__=='__main__':
             gcdfile = figure_out_gcd(infile)
         else:
             gcdfile = options.gcdfile
-        print(infile)
-        print(gcdfile)
-        print(level)
-        print(outfile)
         h = H5Writer(infile, gcdfile, level)
         h.set_outfile(outfile)
         h.dump_h5()
+        print(time.time()-t0)
     else:
         with open(options.infile) as f:
             fs = f.read().split('\n')[:-1]
@@ -58,9 +57,5 @@ if __name__=='__main__':
             outfile = infile.replace('i3.zst', 'h5').replace('i3', 'h5')
             gcdfile = figure_out_gcd(infile)
             h = H5Writer(infile, gcdfile, level)
-            print(infile)
-            print(gcdfile)
-            print(level)
-            print(outfile)
             h.set_outfile(outfile)
             h.dump_h5()
