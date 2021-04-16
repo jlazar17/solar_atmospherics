@@ -6,7 +6,6 @@ from .cut_bad_fits import cut_bad_fits
 
 def make_outfile_name(infile):
     outfile = infile.replace('i3.zst', 'h5').replace('i3', 'h5')
-    print(outfile)
     return outfile
 
 def initialize_parser():
@@ -78,7 +77,6 @@ class H5Writer(object):
     def _set_outkeys(self):
         from solar_atmospherics import outdescs_dict
         self.outkeys =  [desc[0] for desc in outdescs_dict[self.level]]
-        print(self.outkeys)
     
     def dump_h5(self):
         icetray.set_log_level(icetray.I3LogLevel.LOG_ERROR)
@@ -96,7 +94,6 @@ class H5Writer(object):
 
 if __name__=='__main__':
     options, args = initialize_parser()
-    print(options.level)
     h5w = H5Writer(options.infile, options.gcdfile, options.level)
     h5w.set_outfile(options.outfile)
     h5w.dump_h5()
