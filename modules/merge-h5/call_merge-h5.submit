@@ -1,0 +1,109 @@
+universe = vanilla
+executable = /data/user/jlazar/solar/solar_atmospherics/modules/merge-h5/call_merge-h5.sh
+notification = never
+log = /home/jlazar/condor_logs/corsika_merge/log/corsika_merge.log
+output = /home/jlazar/condor_logs/corsika_merge/output/corsika_merge.output
+error = /home/jlazar/condor_logs/corsika_merge/error/corsika_merge.error
+request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 1024 * pow(2, NumJobStarts + 1)
+periodic_release = (HoldReasonCode =?= 21 && HoldReasonSubCode =?= 1001) || HoldReasonCode =?= 21
+periodic_remove = (JobStatus =?= 5 && (HoldReasonCode =!= 34 && HoldReasonCode =!= 21)) || (RequestMemory > 13192)
+arguments = l3_b corsika 0
+queue
+arguments = l3_b corsika 1
+queue
+arguments = l3_b corsika 2
+queue
+arguments = l3_b corsika 3
+queue
+arguments = l3_b corsika 4
+queue
+arguments = l3_b corsika 5
+queue
+arguments = l3_b corsika 6
+queue
+arguments = l3_b corsika 7
+queue
+arguments = l3_b corsika 8
+queue
+arguments = l3_b corsika 9
+queue
+arguments = l3_b corsika 10
+queue
+arguments = l3_b corsika 11
+queue
+arguments = l3_b corsika 12
+queue
+arguments = l3_b corsika 13
+queue
+arguments = l3_b corsika 14
+queue
+arguments = l3_b corsika 15
+queue
+arguments = l3_b corsika 16
+queue
+arguments = l3_b corsika 17
+queue
+arguments = l3_b corsika 18
+queue
+arguments = l3_b corsika 19
+queue
+arguments = l3_b corsika 20
+queue
+arguments = l3_b corsika 21
+queue
+arguments = l3_b corsika 22
+queue
+arguments = l3_b corsika 23
+queue
+arguments = l3_b corsika 24
+queue
+arguments = l3_b corsika 25
+queue
+arguments = l3_b corsika 26
+queue
+arguments = l3_b corsika 27
+queue
+arguments = l3_b corsika 28
+queue
+arguments = l3_b corsika 29
+queue
+arguments = l3_b corsika 30
+queue
+arguments = l3_b corsika 31
+queue
+arguments = l3_b corsika 32
+queue
+arguments = l3_b corsika 33
+queue
+arguments = l3_b corsika 34
+queue
+arguments = l3_b corsika 35
+queue
+arguments = l3_b corsika 36
+queue
+arguments = l3_b corsika 37
+queue
+arguments = l3_b corsika 38
+queue
+arguments = l3_b corsika 39
+queue
+arguments = l3_b corsika 40
+queue
+arguments = l3_b corsika 41
+queue
+arguments = l3_b corsika 42
+queue
+arguments = l3_b corsika 43
+queue
+arguments = l3_b corsika 44
+queue
+arguments = l3_b corsika 45
+queue
+arguments = l3_b corsika 46
+queue
+arguments = l3_b corsika 47
+queue
+arguments = l3_b corsika 48
+queue
+arguments = l3_b corsika 49
+queue
