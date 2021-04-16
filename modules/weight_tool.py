@@ -2,6 +2,7 @@ from icecube import VHESelfVeto,dataclasses,phys_services,icetray,dataio,MuonGun
 from icecube.weighting.fluxes import GaisserH3a, GaisserH4a, Hoerandel5
 from icecube.weighting import weighting, get_weighted_primary, SimprodNormalizations
 from I3Tray import *
+import pickle
 
 import argparse, os, glob
 import numpy as np
@@ -100,6 +101,9 @@ def muongun_generator(mctype):
 #weight Corsika sample now!
 corsika_dids = [20891, 20881, 20852, 20849, 20848, 20789, 20788, 20787, 20904] 
 def weighter_corsika(frame):
+    with open('/data/user/jlazar/test.pkl', 'rb') as f:
+        unp = pickle.Unpickler(f)
+        gens = unp.load()
     if not frame.Has("MCPrimary"):
         get_weighted_primary(frame, MCPrimary="MCPrimary")
     MCPrimary = frame["MCPrimary"]
@@ -108,10 +112,12 @@ def weighter_corsika(frame):
     placeholder = True
     for DID in corsika_dids:
         if(placeholder): 
-            generator = weighting.from_simprod(DID) * simprod_nfiles[DID];
+            generator = gens[DID];
+            #generator = weighting.from_simprod(DID) * simprod_nfiles[DID];
             placeholder = False
         else: 
-            generator += weighting.from_simprod(DID) * simprod_nfiles[DID];
+            generator += gens[DID];
+            #generator += weighting.from_simprod(DID) * simprod_nfiles[DID];
     flux=GaisserH4a()
     #flux=Hoerandel5()
     weights = flux(energy, ptype) / generator(energy, ptype)
