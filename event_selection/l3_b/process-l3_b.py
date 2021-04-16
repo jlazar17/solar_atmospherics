@@ -25,7 +25,7 @@ from icecube.common_variables import track_characteristics
 load('libtruncated_energy')
 load("bayesian-priors")
 
-from solar_atmospherics.modules import get_pulse_names, cut_bad_fits, cut_high_energy, is_lowup_filter, is_muon_filter, rename_MC_tree, has_TWSRT_offline_pulses, fix_weight_map, figure_out_gcd
+from solar_atmospherics.modules import figure_out_gcd, l3b_cuts
 from make_outfile_name import make_outfile_name
 
 def initialize_parser():
@@ -92,81 +92,12 @@ spline_path = "/data/ana/SterileNeutrino/IC86/HighEnergy/scripts/jobs/paraboloid
 icetray.set_log_level(icetray.I3LogLevel.LOG_ERROR)
 truef=lambda frame: True
 #====================================
-InIcePulses, SRTInIcePulses, SRTInIcePulses_NoDC_Qtot, SRTInIcePulses_NoDC = get_pulse_names(infile)
-#====================================
 tray = I3Tray()
 tray.AddService("I3GSLRandomServiceFactory","Random") # needed for bootstrapping
 tray.AddModule("I3Reader","reader")(
                 ("FilenameList",infiles)
                 )
-## Remove high energy portion from GENIE simulation to make sure simulation is non-overlapping
-#if filetype=='genie':
-#    tray.AddModule(CutHighEnergy)
-#tray.AddModule(renameMCTree, "_renameMCTree", Streams=[icetray.I3Frame.DAQ])
-#tray.AddModule(IsLowUp & ~IsMuonFilter & hasTWSRTOfflinePulses,"selectValidData")
-#tray.AddModule(fixWeightMap,"patchCorsikaWeights")
-#tray.AddModule("I3OrphanQDropper","OrphanQDropper")
-##======================================
-#stConfigService = I3DOMLinkSeededRTConfigurationService(
-#                     allowSelfCoincidence    = False,            # Default: False.
-#                     useDustlayerCorrection  = True,             # Default: True.
-#                     dustlayerUpperZBoundary =  0*I3Units.m,     # Default: 0m.
-#                     dustlayerLowerZBoundary = -150*I3Units.m,   # Default: -150m.
-#                     ic_ic_RTTime            =  1000*I3Units.ns, # Default: 1000m.
-#                     ic_ic_RTRadius          =  150*I3Units.m    # Default: 150m.
-#                    )
-#tray.AddModule("I3SeededRTCleaning_RecoPulse_Module", "SRTClean",
-#               InputHitSeriesMapName  = InIcePulses,
-#               OutputHitSeriesMapName = SRTInIcePulses,
-#               STConfigService        = stConfigService,
-#               #SeedProcedure         = "HLCCoreHits",
-#               NHitsThreshold         = 2,
-#               Streams                = [icetray.I3Frame.DAQ]
-#              )
-#tray.AddModule("I3TopologicalSplitter", "TTrigger",
-#               SubEventStreamName = 'TTrigger',
-#               InputName          = "SRTInIcePulses",
-#               OutputName         = "TTPulses",
-#               Multiplicity       = 4, 
-#               TimeWindow         = 2000, #Default=4000 ns
-#               XYDist             = 300, 
-#               ZDomDist           = 15, 
-#               TimeCone           = 1000, #Default=1000 ns
-#               SaveSplitCount     = True
-#              )
-#tray.AddSegment(CoincSuite.Complete, "CoincSuite Recombinations",
-#                SplitPulses = "TTPulses",
-#                SplitName   = 'TTrigger',
-#                FitName     = "LineFit"
-#               )
-#tray.AddSegment(linefit.simple,
-#                fitname       = "LineFit_TT",
-#                If            =lambda frame: frame['I3EventHeader'].sub_event_stream=='TTrigger',
-#                inputResponse = 'TTPulses',
-#               )
-#tray.AddSegment(lilliput.segments.I3SinglePandelFitter,
-#                fitname = "SPEFitSingle_TT",
-#                If      = lambda frame: frame['I3EventHeader'].sub_event_stream=='TTrigger',
-#                domllh  = "SPE1st",
-#                pulses  = 'TTPulses',
-#                seeds   = ["LineFit_TT"],
-#              )
-#tray.AddSegment(lilliput.segments.I3IterativePandelFitter,
-#                fitname      = "SPEFit4_TT",
-#                If           = lambda frame: frame['I3EventHeader'].sub_event_stream=='TTrigger',
-#                domllh       = "SPE1st",
-#                n_iterations = 4,
-#                pulses       = 'TTPulses',
-#                seeds        = ["SPEFitSingle_TT"],
-#               )
-#tray.AddSegment(lilliput.segments.I3SinglePandelFitter,
-#                fitname = "MPEFit_TT",
-#                If      = lambda frame: frame['I3EventHeader'].sub_event_stream=='TTrigger',
-#                domllh  = "MPE",
-#                pulses  = 'TTPulses',
-#                seeds   = ["SPEFit4_TT"],
-#               )
-#tray.AddModule(cut_bad_fits)
+tray.AddModule(l3b_cuts)
 ########### WHAT does this shit do ? #########
 seedLikelihood='MPEFit_TT'+"_BayesianLikelihoodSeed"
 tray.AddService('I3GulliverIPDFPandelFactory', 'MPEFit_TT'+"_BayesianLikelihoodSeed",
