@@ -1,5 +1,12 @@
 eval `/cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/setup.sh`
+
+############################# DIRECTORIES TO MODIFY ############################
+export L3_A_SAVEDIR=/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/data/
+export L3_B_SAVEDIR=/data/user/jvillarreal/solar_atmospherics/event_selection/l3_b/data/
+export PLOT_DIR=$SOLAR_BASE_DIR/plots/
+export DATA_DIR=$SOLAR_BASE_DIR/data/
 export SOLAR_BASE_DIR=/data/user/jlazar/solar/solar_atmospherics/
+################################################################################
 
 export LD_LIBRARY_PATH=$SROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$SROOT/lib64:$LD_LIBRARY_PATH
@@ -29,6 +36,4 @@ export PYTHONPATH=$PYTHONPATH:$SOLAR_BASE_DIR/..
 export BOOST_ROOT=$SROOT
 export HDF5_DISABLE_VERSION_CHECK=1
 export HDF5_USE_FILE_LOCKING='FALSE'
-export PLOT_DIR=$SOLAR_BASE_DIR/plots/
-export DATA_DIR=$SOLAR_BASE_DIR/data/
 /data/user/jlazar/combo37/build/env-shell.sh
