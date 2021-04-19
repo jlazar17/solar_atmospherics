@@ -7,11 +7,6 @@ from optparse import OptionParser
 def initialize_parser():
     parser = OptionParser()
     parser.add_option('--simname', dest='simname', type=str, default='nancy')
-    #parser.add_option("-i", "--indir",
-    #                  dest="indir",
-    #                  type=str,
-    #                  default = '/data/sim/IceCube/2016/filtered/level2/neutrino-generator/nancy001/NuMu/medium_energy/hole_ice/p1=0.3_p2=0.0/2/'
-    #                 )
     parser.add_option("-o", "--outfile", dest="outfile", type=str, default='')
     parser.add_option('-n', '--njobs', dest='njobs', type=int, default=20)
 
@@ -20,7 +15,7 @@ def initialize_parser():
 
 options, args = initialize_parser()
 
-path   = "/home/jvillarreal/condor_logs/process-l3_b/"
+path   = os.environ.get('CONDOR_LOGS_DIR')+"/process-l3_b/"
 error  = "%s/error" % path
 output = "%s/output" % path
 log    = "%s/log" % path
@@ -46,7 +41,7 @@ run    = pycondor.Job("process-l3_b_%s" % options.simname,
                      )
 
 njobs = options.njobs
-infiles = glob('/data/user/jlazar/solar/solar_atmospherics/event_selection/l3_b/input/i3/%s/x*' % options.simname)
+infiles = glob('%s/event_selection/l3_b/input/i3/%s/x*' % (os.environ.get('SOLAR_BASE_DIR'), options.simname))
 for i in range(njobs):
     slc = slice(i, None, njobs)
     run.add_arg(' '.join(infiles[slc]))

@@ -15,7 +15,8 @@ def initialize_parser():
 
 options, args = initialize_parser()
 
-path   = "/home/jvillarreal/condor_logs/process-l3_a/"
+path   = os.environ.get('CONDOR_LOGS_DIR')+"/process-l3_a/"
+print(path)
 error  = "%s/error" % path
 output = "%s/output" % path
 log    = "%s/log" % path
@@ -41,7 +42,7 @@ run    = pycondor.Job("process-l3_a_%s" % options.simname,
                      )
 
 njobs = options.njobs
-infiles = glob('/data/user/jlazar/solar/solar_atmospherics/event_selection/l3_a/input/i3/%s/x*' % options.simname)
+infiles = glob('%s/event_selection/l3_a/input/i3/%s/x*' % (os.environ.get('SOLAR_BASE_DIR'), options.simname))
 if options.simname=='data':
     infiles = infiles[::10] # Only run on 10% of the data
 for i in range(njobs):
