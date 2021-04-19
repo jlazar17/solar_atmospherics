@@ -6,6 +6,7 @@ export L3_B_SAVEDIR=/data/user/jvillarreal/solar_atmospherics/event_selection/l3
 export PLOT_DIR=$SOLAR_BASE_DIR/plots/
 export DATA_DIR=$SOLAR_BASE_DIR/data/
 export SOLAR_BASE_DIR=/data/user/jlazar/solar/solar_atmospherics/
+export CONDOR_LOGS_DIR=/home/jlazar/condor_logs/
 ################################################################################
 
 export LD_LIBRARY_PATH=$SROOT/lib:$LD_LIBRARY_PATH
