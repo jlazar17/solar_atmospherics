@@ -8,4 +8,5 @@ from .has_TWSRT_offline_pulses import has_TWSRT_offline_pulses
 from .is_muon_filter import is_muon_filter
 from .is_lowup_filter import is_lowup_filter
 from .rename_out_vars import rename_out_vars
+from .rename_MC_tree import rename_MC_tree
 from .figure_out_gcd import figure_out_gcd
