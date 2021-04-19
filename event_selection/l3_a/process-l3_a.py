@@ -3,9 +3,7 @@ from optparse import OptionParser
 import numpy as np
 from glob import glob
 
-print('loading I3tray...')
 from I3Tray import *
-print('loading icecube...')
 from icecube import icetray, dataio, dataclasses
 from icecube.common_variables import hit_multiplicity, hit_statistics, direct_hits
 from icecube.STTools.seededRT.configuration_services import I3DOMLinkSeededRTConfigurationService
@@ -15,13 +13,9 @@ from icecube import phys_services, DomTools, simclasses, VHESelfVeto
 from icecube import lilliput, gulliver, gulliver_modules, paraboloid
 from icecube import linefit, MuonGun, WaveCalibrator,wavedeform
 from icecube import photonics_service
-from icecube import TopologicalSplitter
 import icecube.lilliput.segments
 from icecube import tableio, hdfwriter
 from icecube.icetray import I3Units
-from icecube.common_variables import direct_hits
-from icecube.common_variables import hit_multiplicity
-from icecube.common_variables import track_characteristics
 load('libtruncated_energy')
 load("bayesian-priors")
 
@@ -60,7 +54,6 @@ def initialize_parser():
     return options, args
 
 t0 = time.time()
-print('parsing...')
 options, args = initialize_parser()
 infile        = options.infile
 if options.gcdfile=='':
