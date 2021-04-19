@@ -31,4 +31,3 @@ export HDF5_DISABLE_VERSION_CHECK=1
 export HDF5_USE_FILE_LOCKING='FALSE'
 export PLOT_DIR=$SOLAR_BASE_DIR/plots/
 export DATA_DIR=$SOLAR_BASE_DIR/data/
-/data/user/jlazar/combo37/build/env-shell.sh
