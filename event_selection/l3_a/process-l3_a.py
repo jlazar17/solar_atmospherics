@@ -53,7 +53,8 @@ def initialize_parser():
                      )
     parser.add_option("-o", "--outfile",
                       dest="outfile",
-                      default=make_outfile_name
+                      type=str,
+                      default=''
                      )
     options,args = parser.parse_args()
     return options, args
@@ -75,10 +76,10 @@ elif 'nancy' in infile:
     filetype = 'nancy'
 elif 'exp' in infile:
     filetype = 'exp_data'
-if not callable(options.outfile):
+if len(options.outfile)!=0:
     outfile = options.outfile
 else:
-    outfile = options.outfile(infile)
+    outfile = make_outfile_name(infile)
 outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
 # save tempfile
 tmpfile = outfile.replace('.i3.zst', '.npy')
@@ -102,13 +103,13 @@ tray.AddModule(fix_weight_map,"patchCorsikaWeights")
 tray.AddModule("I3OrphanQDropper","OrphanQDropper")
 #======================================
 stConfigService = I3DOMLinkSeededRTConfigurationService(
-                     allowSelfCoincidence    = False,            # Default: False.
-                     useDustlayerCorrection  = True,             # Default: True.
-                     dustlayerUpperZBoundary =  0*I3Units.m,     # Default: 0m.
-                     dustlayerLowerZBoundary = -150*I3Units.m,   # Default: -150m.
-                     ic_ic_RTTime            =  1000*I3Units.ns, # Default: 1000m.
-                     ic_ic_RTRadius          =  150*I3Units.m    # Default: 150m.
-                    )
+                                                        allowSelfCoincidence    = False,            # Default: False.
+                                                        useDustlayerCorrection  = True,             # Default: True.
+                                                        dustlayerUpperZBoundary =  0*I3Units.m,     # Default: 0m.
+                                                        dustlayerLowerZBoundary = -150*I3Units.m,   # Default: -150m.
+                                                        ic_ic_RTTime            =  1000*I3Units.ns, # Default: 1000m.
+                                                        ic_ic_RTRadius          =  150*I3Units.m    # Default: 150m.
+                                                       )
 tray.AddModule("I3SeededRTCleaning_RecoPulse_Module", "SRTClean",
                InputHitSeriesMapName  = InIcePulses,
                OutputHitSeriesMapName = SRTInIcePulses,
