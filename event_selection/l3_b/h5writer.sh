@@ -5,5 +5,5 @@ source /data/user/jlazar/solar/solar_atmospherics/env_nocombo.sh;
 
 for INFILE in "$@";
 do
-     /data/user/jlazar/combo37/build/env-shell.sh python $SOLAR_INSTALL_DIR/solar_atmospherics/event_selection/l3_b/h5writer.py -i ${INFILE};
+     /data/user/jlazar/combo37/build/env-shell.sh python $SOLAR_BASE_DIR/event_selection/l3_b/h5writer.py -i ${INFILE};
 done
