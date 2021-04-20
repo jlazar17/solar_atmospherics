@@ -28,7 +28,7 @@ xlines = ["request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 1024 
 
 dagman = pycondor.Dagman("process-l3_b_h5_%s_dag" % options.simname, submit=submit, verbose=2)
 run    = pycondor.Job("process-l3_b_h5_%s" % options.simname, 
-                      "/data/user/jlazar/solar/solar_atmospherics/event_selection/l3_b/h5writer.sh", 
+                      os.environ.get('SOLAR_BASE_DIR')+"/event_selection/l3_b/h5writer.sh", 
                       error=error, 
                       output=output, 
                       log=log, 

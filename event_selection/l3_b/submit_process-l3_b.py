@@ -28,7 +28,7 @@ xlines = ["request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 1024 
 
 dagman = pycondor.Dagman("process-l3_b_%s_dag" % options.simname, submit=submit, verbose=2)
 run    = pycondor.Job("process-l3_b_%s" % options.simname, 
-                      "/data/user/jvillarreal/sa_git/solar_atmospherics/event_selection/l3_b/process-l3_b.sh", 
+                      os.environ.get('SOLAR_BASE_DIR')+"/event_selection/l3_b/process-l3_b.sh", 
                       error=error, 
                       output=output, 
                       log=log, 
