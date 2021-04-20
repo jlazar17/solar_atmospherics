@@ -1,3 +1,4 @@
+import os,sys
 from solar_atmospherics.modules import H5Writer, figure_out_gcd
 
 def initialize_parser():
@@ -39,9 +40,12 @@ if __name__=='__main__':
         t0 = time.time()
         infile = options.infile
         if options.outfile=='':
-            outfile = infile.replace('i3.zst', 'h5').replace('i3', 'h5')
+            fname   = infile.split('/')[-1].replace('i3.zst', 'h5')
+            outdir  = '%s/%s/h5/' % (os.environ.get('L3_B_SAVEDIR'), infile.split('/')[-3])
+            outfile = fname+outdir
         else:
             outfile = options.outfile
+        print(outfile)
         if options.gcdfile=='':
             gcdfile = figure_out_gcd(infile)
         else:
@@ -54,7 +58,11 @@ if __name__=='__main__':
         with open(options.infile) as f:
             fs = f.read().split('\n')[:-1]
         for infile in fs:
-            outfile = infile.replace('i3.zst', 'h5').replace('i3', 'h5')
+            fname   = infile.split('/')[-1].replace('i3.zst', 'h5')
+            outdir  = '%s/%s/h5/' % (os.environ.get('L3_B_SAVEDIR'), infile.split('/')[-3])
+            if not os.path.isdir(outdir):
+                os.makedirs(outdir)
+            outfile = outdir+fname
             gcdfile = figure_out_gcd(infile)
             h = H5Writer(infile, gcdfile, level)
             h.set_outfile(outfile)
