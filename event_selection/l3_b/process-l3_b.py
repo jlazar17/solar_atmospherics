@@ -1,8 +1,6 @@
 import sys, os, time
 from optparse import OptionParser
 import numpy as np
-sys.path.append('/data/user/jvillarreal/sa_git/')
-sys.path.append('/data/user/jlazar/solar/')
 
 from glob import glob
 from I3Tray import *
@@ -53,7 +51,8 @@ def initialize_parser():
                      )
     parser.add_option("-o", "--outfile",
                       dest="outfile",
-                      default=make_outfile_name
+                      type=str,
+                      default=''
                      )
     options,args = parser.parse_args()
     return options, args
@@ -77,10 +76,11 @@ if options.gcdfile=='':
 else:
     gcdfile = options.gcdfile
     
-if not callable(options.outfile):
+if len(options.outfile)!=0:
     outfile = options.outfile
 else:
-    outfile = options.outfile(infile)
+    outfile = make_outfile_name(infile)
+print(outfile)
 outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
 # save tempfile
 tmpfile = outfile.replace('.i3.zst', '.npy')
