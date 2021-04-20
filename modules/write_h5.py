@@ -3,6 +3,7 @@ from icecube import tableio, hdfwriter, icetray, dataclasses
 
 from .rename_out_vars import rename_out_vars
 from .cut_bad_fits import cut_bad_fits
+from .l3b_cuts import l3b_cuts
 
 def make_outfile_name(infile):
     outfile = infile.replace('i3.zst', 'h5').replace('i3', 'h5')
@@ -83,6 +84,7 @@ class H5Writer(object):
         tray = I3Tray()
         tray.AddModule("I3Reader","reader")(("FilenameList", self.infiles))
         tray.AddModule(cut_bad_fits, 'bad_fit_cutter') # This should not be in here long term
+        tray.AddModule(l3b_cuts, 'l3_b_cutter') # This should not be in here long term
         tray.AddModule(rename_out_vars, geometry=None, fluxname=self.fluxname, corsika_set=self.corsika_set)
         tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
                 ("tableservice",hdfwriter.I3HDFTableService(self.outfile)),
