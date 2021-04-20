@@ -1,8 +1,8 @@
 #!/bin/bash
 
 export PYTHONPATH=$PYTHONPATH:/data/user/jlazar/.pylib
+source /data/user/jlazar/solar/solar_atmospherics/env_nocombo.sh
 BASEDIR=$SOLAR_BASE_DIR
-source $BASEDIR/env_nocombo.sh
 
 for INPUTFILE in "$@";
 do

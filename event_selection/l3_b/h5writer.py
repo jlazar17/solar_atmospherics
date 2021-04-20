@@ -58,4 +58,5 @@ if __name__=='__main__':
             gcdfile = figure_out_gcd(infile)
             h = H5Writer(infile, gcdfile, level)
             h.set_outfile(outfile)
+            print(h.outfile)
             h.dump_h5()
