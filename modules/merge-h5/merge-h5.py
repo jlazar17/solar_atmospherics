@@ -31,8 +31,7 @@ def initialize_parser():
     return options, args
 def get_info(simname, level, jump=None):
     params['descs'] = outdescs_dict[level]
-    print(params['descs'])
-    base_dir = '/data/user/jvillarreal/solar_atmospherics/event_selection/%s/data/%s/h5/' % (level, simname)
+    base_dir = '/data/user/jvillarreal/sa_temp/solar_atmospherics/event_selection/%s/data/%s/h5/' % (level, simname)
     if options.simname=='nancy':
         info = []
         for nutype in ['NuE', 'NuMu', 'NuTau']:
@@ -47,7 +46,7 @@ def get_info(simname, level, jump=None):
             info.append((fs, len(fs)*params['nevents']['genie']))
     elif options.simname=='corsika':
         skip = 50
-        base_dir = '/data/user/jvillarreal/solar_atmospherics/event_selection/l3_b/data/corsika/h5/'
+        base_dir = '/data/user/jvillarreal/sa_temp/solar_atmospherics/event_selection/l3_b/data/corsika/h5/'
         h5_infiles = [
                       sorted(glob('%s/*.h5' % base_dir)[jump::skip])
                      ]
@@ -65,7 +64,7 @@ def merge_h5(simname, level, jump):
     if simname=='corsika':
         outfile = '/data/user/jlazar/big_files/solar_atmospherics/merging/%s_%s_merged_holeice-0300_%d.h5'  % (level,simname, jump)
     else:
-        outfile = '/data/user/jlazar/big_files/solar_atmospherics/%s_%s_merged_holeice-0300_1.h5' % (level,simname)
+        outfile = '/data/user/jlazar/big_files/solar_atmospherics/%s_%s_merged_holeice-0300_2.h5' % (level,simname)
     with h5.File(outfile, 'w') as h5_outfile:
         dsets = {}
         for key, dtype in params['descs']:
