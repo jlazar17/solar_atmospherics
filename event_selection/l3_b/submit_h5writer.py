@@ -15,7 +15,7 @@ def initialize_parser():
 
 options, args = initialize_parser()
 
-path   = "/home/jlazar/condor_logs/process-l3_b_h5/"
+path   = os.environ.get('CONDOR_LOGS_DIR') + "/process-l3_b_h5/"
 error  = "%s/error" % path
 output = "%s/output" % path
 log    = "%s/log" % path
