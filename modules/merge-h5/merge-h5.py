@@ -30,7 +30,6 @@ def initialize_parser():
     options,args = parser.parse_args()
     return options, args
 def get_info(simname, level, jump=None):
-    params['descs'] = outdescs_dict[level]
     base_dir = '/data/user/jvillarreal/sa_temp/solar_atmospherics/event_selection/%s/data/%s/h5/' % (level, simname)
     if options.simname=='nancy':
         info = []
@@ -60,6 +59,7 @@ def get_info(simname, level, jump=None):
     return info
 
 def merge_h5(simname, level, jump):
+    params['descs'] = outdescs_dict[level]
     info = get_info(simname, level)
     if simname=='corsika':
         outfile = '/data/user/jlazar/big_files/solar_atmospherics/merging/%s_%s_merged_holeice-0300_%d.h5'  % (level,simname, jump)
