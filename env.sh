@@ -1,11 +1,11 @@
 eval `/cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/setup.sh`
 
 ############################# DIRECTORIES TO MODIFY ############################
-export L3_A_SAVEDIR=/data/user/jvillarreal/solar_atmospherics/event_selection/l3_a/data/
-export L3_B_SAVEDIR=/data/user/jvillarreal/solar_atmospherics/event_selection/l3_b/data/
+export L3_A_SAVEDIR=/data/user/jlazar/solar/solar_atmospherics/event_selection/l3_a/data/
+export L3_B_SAVEDIR=/data/user/jlazar/solar/solar_atmospherics/event_selection/l3_b/data/
+export SOLAR_BASE_DIR=/data/user/jlazar/solar/solar_atmospherics/
 export PLOT_DIR=$SOLAR_BASE_DIR/plots/
 export DATA_DIR=$SOLAR_BASE_DIR/data/
-export SOLAR_BASE_DIR=/data/user/jlazar/solar/solar_atmospherics/
 export CONDOR_LOGS_DIR=/home/jlazar/condor_logs/
 ################################################################################
 

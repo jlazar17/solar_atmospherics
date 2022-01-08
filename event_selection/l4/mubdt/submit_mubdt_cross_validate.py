@@ -35,6 +35,7 @@ for lr in lrs:
     for rg in rgs:
         for mln in mlns:
             args = '%f %f %d' % (lr, rg, mln)
-            run.add_arg(args)
-
-run.build()
+            print(args)
+#            run.add_arg(args)
+#
+#run.build()

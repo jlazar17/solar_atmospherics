@@ -19,6 +19,7 @@ from icecube.icetray import I3Units
 load('libtruncated_energy')
 load("bayesian-priors")
 
+import solar_atmospherics
 from solar_atmospherics.modules import get_pulse_names, cut_bad_fits, cut_high_energy, is_lowup_filter, is_muon_filter, rename_MC_tree, has_TWSRT_offline_pulses, fix_weight_map, figure_out_gcd
 from make_outfile_name import make_outfile_name
 
@@ -75,8 +76,6 @@ else:
     outfile = make_outfile_name(infile)
 outfile = outfile.replace('JLevel', 'JLevel_%s' % filetype)
 # save tempfile
-tmpfile = outfile.replace('.i3.zst', '.npy')
-np.save(tmpfile, [])
 infiles = [gcdfile, infile]
 icetray.set_log_level(icetray.I3LogLevel.LOG_ERROR)
 #====================================
@@ -171,4 +170,3 @@ else:
   tray.Execute(options.nFrames)
 tray.Finish()
 print(time.time()-t0)
-os.remove(tmpfile)

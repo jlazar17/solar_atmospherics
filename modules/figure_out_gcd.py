@@ -14,11 +14,9 @@ corsika_gcdc_dict = {20787:"/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalib
                     }
 
 def get_data_gcd(infile):
-    finfo = infile.split('/')[-1].split('_')
-    runN  = str(int(finfo[3][3:]))
-    with open('/data/user/jlazar/run_info.json') as f:
-         data = json.load(f)
-    return data[runN][4]
+    finfo = "/".join(infile.split('/')[:-1])
+    GCD = glob(f"{finfo}/*GCD*")
+    return GCD[0]
         
 
 def figure_out_gcd(infile):
