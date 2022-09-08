@@ -52,7 +52,7 @@ def rename_out_vars(frame, geometry, fluxname, corsika_set):
 
     
 
-    # Compute variables that vary from file to file
+    # Compute MC variables that vary from simulation to simulation
     if fluxname=='nancy':
         true_energy  = frame['I3MCWeightDict']['PrimaryNeutrinoEnergy']
         true_zenith  = frame['I3MCWeightDict']['PrimaryNeutrinoZenith']
@@ -106,11 +106,13 @@ def rename_out_vars(frame, geometry, fluxname, corsika_set):
     frame.Put('COGY',         dataclasses.I3Double(cog_vertex.y))
     frame.Put('COGZ',         dataclasses.I3Double(cog_vertex.z))
     frame.Put('COGZSigma'   , dataclasses.I3Double(cogz_sigma))
-    frame.Put('TrueEnergy'  , dataclasses.I3Double(true_energy))
-    frame.Put('TrueZenith'  , dataclasses.I3Double(true_zenith))
-    frame.Put('TrueAzimuth' , dataclasses.I3Double(true_azimuth))
-    frame.Put('PrimaryType' , dataclasses.I3Double(ptype))
-    frame.Put('oneweight'   , dataclasses.I3Double(oneweight))
     frame.Put('QTot'        , dataclasses.I3Double(qtot))
+    # Put MC informtion in simulation sets
+    if fluxname in "corsika genie nancy".split():
+        frame.Put('TrueEnergy'  , dataclasses.I3Double(true_energy))
+        frame.Put('TrueZenith'  , dataclasses.I3Double(true_zenith))
+        frame.Put('TrueAzimuth' , dataclasses.I3Double(true_azimuth))
+        frame.Put('PrimaryType' , dataclasses.I3Double(ptype))
+        frame.Put('oneweight'   , dataclasses.I3Double(oneweight))
 
     return True

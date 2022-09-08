@@ -5,6 +5,7 @@ def make_conj(f1,f2):
             return(False)
         return(f2(frame))
     return(conj)
+
 def make_disj(f1,f2):
     def disj(frame):
         c1=f1(frame)

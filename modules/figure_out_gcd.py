@@ -1,7 +1,3 @@
-from glob import glob
-import json
-import os
-
 corsika_gcdc_dict = {20787:"/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz",
                      20788:"/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz",
                      20789:"/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz",
@@ -14,6 +10,7 @@ corsika_gcdc_dict = {20787:"/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalib
                     }
 
 def get_data_gcd(infile):
+    from glob import glob
     finfo = "/".join(infile.split('/')[:-1])
     GCD = glob(f"{finfo}/*GCD*")
     return GCD[0]

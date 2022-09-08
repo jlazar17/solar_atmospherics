@@ -1,13 +1,15 @@
 l3_b_descs = [
-              ('ZTravel',       '<f8'),
+              # MC quantities
               ('oneweight',     '<f8'),
               ('eff_oneweight', '<f8'),
-              ('COGZ',          '<f8'),
-              ('COGZSigma',     '<f8'),
               ('TrueEnergy',    '<f8'),
               ('TrueZenith',    '<f8'),
               ('TrueAzimuth',   '<f8'),
               ('PrimaryType',   '<f8'),
+              # Reco quantities
+              ('ZTravel',       '<f8'),
+              ('COGZ',          '<f8'),
+              ('COGZSigma',     '<f8'),
               ('RLogL',         '<f8'),
               ('RecoAzimuth',   '<f8'),
               ('RecoZenith',    '<f8'),
