@@ -39,7 +39,7 @@ xlines = [
 dagman = pycondor.Dagman("write_h5-l3_a_dag", submit=submit, verbose=2)
 run = pycondor.Job(
     "write_h5-l3_a", 
-    "/data/user/jlazar/solar/solar_atmospherics/event_selection/l3/write-l3_a.sh", 
+    "/data/user/jlazar/solar/solar_atmospherics/event_selection/l3/write_h5_l3_a.sh", 
     error=error, 
     output=output, 
     log=log, 
