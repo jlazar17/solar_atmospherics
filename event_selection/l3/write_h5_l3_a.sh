@@ -6,8 +6,7 @@ BASEDIR=$SOLAR_BASE_DIR
 
 INFILE=$1
 OUTDIR=$2
-THIN=$3
-REST=$4
+REST=$3
 
-CMD="/data/user/jlazar/combo37/build/env-shell.sh python ${BASEDIR}/event_selection/l3/process-l3.py -i `cat ${INFILE}` --outdir ${OUTDIR} --thin ${THIN} ${REST} --l3_a"
+CMD="/data/user/jlazar/combo37/build/env-shell.sh python ${BASEDIR}/event_selection/l3/write_h5.py -i `cat ${INFILE}` --level l3_a --outdir ${OUTDIR} ${REST}"
 ${CMD}

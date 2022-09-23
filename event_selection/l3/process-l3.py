@@ -10,7 +10,9 @@ from utils import (
     is_muon_filter,
     rename_mc_tree,
     has_twsrt_offline_pulses,
-    fix_weight_map
+    fix_weight_map,
+    write_simname,
+    write_corsika_set
 )
 
 def initialize_parser():
@@ -121,7 +123,7 @@ def main(
     tray.AddService("I3GSLRandomServiceFactory","Random") # needed for bootstrapping
     tray.AddModule("I3Reader","reader")(("FilenameList", infile_gcd))
     # Remove high energy portion from GENIE simulation to make sure simulation is non-overlapping
-    if filetype=='genie':
+    if kwargs["simname"]=='genie':
         tray.AddModule(cut_high_energy)
     tray.AddModule(
         rename_mc_tree,
@@ -171,6 +173,15 @@ def main(
             SplitName = 'TTrigger',
             FitName = "LineFit"
         )
+        tray.AddModule(
+            write_simname,
+            simname = kwargs["simname"]
+        )
+        if kwargs["corsika_set"] > 0:
+            tray.AddModule(
+                write_corsika_set,
+                corsika_set = kwargs["corsika_set"]
+            )
         tray.AddSegment(
             hit_statistics.I3HitStatisticsCalculatorSegment,
             'HitStatistics',
@@ -351,6 +362,49 @@ def main(
 if __name__=="__main__":
     from solar_atmospherics.event_selection.utils import make_outfile_name, figure_out_gcd
     args = initialize_parser()
+
+    # Get a list of infiles
+    infiles = args.infile
+
+
+    # Construct a list of all GCD fils
+    if not args.gcdfile:
+        gcds = [figure_out_gcd(i) for i in infiles]
+    elif len(args.gcdfile)==len(infiles):
+        gcds = args.gcdfile
+    else:
+        raise ValueError("Number of provided GCDs does not match number of infiles")
+
+    #  Determine the outfile name
+    if not args.outfile:
+        outfiles = [make_outfile_name(i, outdir=args.outdir, prefix="Level3_a_", strip="Level2_") for i in infiles]
+    else:
+        outfiles = args.outfile
+
+    #outfiles = [o.replace('JLevel', 'JLevel_%s' % simname) for o in outfiles]
+    slc = slice(None, None, args.thin)
+    infiles = infiles[slc]
+    outfiles = outfiles[slc]
+    gcds = gcds[slc]
+
+    # Determine what kind of data we are processing
+    if 'corsika' in infiles[0]:
+        simname = 'corsika'
+    elif 'genie' in infiles[0]:
+        simname = 'genie'
+    elif 'nancy' in infiles[0]:
+        simname = 'nancy'
+    elif 'exp' in infiles[0]:
+        simname = 'exp_data'
+
+    if simname=="corsika":
+        from utils import determine_corsika
+        corsika_sets = [determine_corsika(f) for f in infiles]
+    else:
+        import numpy as np
+        corsika_sets = np.full(len(infiles), -1)
+
+    # TODO get rid of this kwargs bullshit
     kwargs = {
         "l3_a" : args.l3_a,
         "l3_b" : args.l3_b,
@@ -361,44 +415,20 @@ if __name__=="__main__":
         "cog_z_vertex" : 110,
         "rlogl" : 22,
         "zenith_min" : 1.4835,
-        "zenith_max" : 2.4435 
+        "zenith_max" : 2.4435,
+        "simname" : simname
     }
-    print(kwargs)
 
-    # Get a list of infiles
-    infiles = args.infile
-
-    # Construct a list of all GCD fils
-    if not args.gcdfile:
-        gcds = [figure_out_gcd(i) for i in infiles]
-    elif len(args.gcdfile)==len(infiles):
-        gcds = args.gcdfile
-    else:
-        raise ValueError("Number of provided GCDs does not match number of infiles")
-
-    # Determine what kind of data we are processing
-    if 'corsika' in infiles[0]:
-        filetype = 'corsika'
-    elif 'genie' in infiles[0]:
-        filetype = 'genie'
-    elif 'nancy' in infiles[0]:
-        filetype = 'nancy'
-    elif 'exp' in infiles[0]:
-        filetype = 'exp_data'
-
-    #  Determine the outfile name
-    if not args.outfile:
-        outfiles = [make_outfile_name(i, outdir=args.outdir, prefix="Level3_a_", strip="Level2_") for i in infiles]
-    else:
-        outfiles = args.outfile
-    outfiles = [o.replace('JLevel', 'JLevel_%s' % filetype) for o in outfiles]
-    slc = slice(None, None, args.thin)
-    infiles = infiles[slc]
-    outfiles = outfiles[slc]
-    gcds = gcds[slc]
     if not args.profile:
         from os.path import exists
-        for inf, outf, gcd in zip(infiles, outfiles, gcds):
+        for inf, outf, gcd, corsika_set in zip(
+            infiles,
+            outfiles,
+            gcds,
+            corsika_sets
+        ):
+            print(inf, outf)
+            kwargs["corsika_set"] = corsika_set
             if not exists(outf):
                 main(inf, outf, gcd, **kwargs)
             elif args.force_recalc:
