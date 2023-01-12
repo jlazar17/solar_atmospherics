@@ -20,7 +20,7 @@ def initialize_parser():
         default = ""
     )
     parser.add_argument(
-        "--prefix"
+        "--prefix",
         dest = "prefix",
         default = "",
         type = str,
@@ -28,7 +28,7 @@ def initialize_parser():
     parser.add_argument(
         "-n",
         "--nmax",
-        dest = nmax,
+        dest = "nmax",
         default = 1000000,
         type = int
     )
@@ -41,14 +41,9 @@ def make_new_outfile(path, keys, nmax):
          h5_write_file.create_dataset(k, shape=(nmax,), dtype=np.float64)
      return h5_write_file
 
-def main(indir, outdir, prefix, nmax, track_progress=False):
+def main(indir, outdir, prefix, nmax, track_progress=True):
     fs = glob(f"{indir}/Level*.h5")
-    if track_progress:
-        from tqdm import tqdm
-        itr = tqdm(fs)
-    else:
-        itr = fs``
-    for f in itr:
+    for f in fs:
         h5f = h5.File(f, "r")
         keys = h5f.keys()
         if len(keys) > 1:
@@ -62,7 +57,12 @@ def main(indir, outdir, prefix, nmax, track_progress=False):
         nmax
     )
     data_counter = 0
-    for f in fs:
+    if track_progress:
+        from tqdm import tqdm
+        itr = tqdm(fs)
+    else:
+        itr = fs
+    for f in itr:
         h5f = h5.File(f, "r")
         if len(h5f.keys())==1:
             pass
