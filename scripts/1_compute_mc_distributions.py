@@ -33,12 +33,32 @@ def get_event_flux(fluxfile: str, key: str) -> EventFlux:
     _______
     event_flux: EventFlux object
     """
-    with h5.File(fluxfile) as h5f:
+    with h5.File(fluxfile, "r") as h5f:
         event_flux = EventFlux(
             h5f[key][:],
             getattr(SkyDistribution, h5f[key].attrs["Distribution"])
         )
     return event_flux
+
+def get_events(fluxfile: str, key: str) -> EventReader:
+    """Makes an events reader from metadata of input fluxfile
+
+    params
+    ______
+    fluxfile: h5file where fluxes are stored
+    key: Name of the field in h5 file where flux and metadata are stored
+
+    returns
+    _______
+    events: EventReader object corresponding to flux
+    """
+    with h5.File(fluxfile, "r") as h5f:
+        print(h5f[key].attrs.keys())
+        eventsfile = h5f[key].attrs["MC File"]
+    selection = determine_selection(eventsfile)
+    events = EventReader(eventsfile, selection, DataType.MC)
+    return events
+    
 
 def save_output(
     outfile: str,
@@ -70,13 +90,13 @@ def save_output(
 
 def main(
     fluxfile: str,
-    eventsfile: str,
     outfile: str,
     seed: int,
     keys: Optional[Union[None, Iterable[str]]] = None,
     mjdmin: Optional[float] = MJDMIN,
     mjdmax: Optional[float] = MJDMAX,
     ndays: Optional[int] = 1_000,
+    eventsfile: Optional[Union[None, str]] = None
 ) -> None:
     """Computes the analysis level distributions in \Delta\psi, E_{reco},
     and potentially other variables averaged over an input number
@@ -86,13 +106,15 @@ def main(
     params
     ______
     fluxfile: h5file where fluxes are stored
-    eventsfile: file where the events to be used are stored
     outfile: h5 file where we should save the output
     keys: keys from h5file to generate distributions for. If `None`, distributions will be
         generated for all keys
     seed: random number generation seed
     mjdmin: minimum modified Julian date for uiform sampling range
     mjdmax: maximum modified Julian date for uiform sampling range
+    eventsfile: mc file for which the flux was generated. If `None`
+        this file will be pulled from the fluxfile metadata. This
+        is time-consuming though
     """
     # Get the keys from the outfile if not provided
     if keys is None or len(keys)==0:
@@ -101,15 +123,17 @@ def main(
 
     # Make the output file if it doesn't exist
     if not os.path.exists(outfile):
-        with h5.File(outfile) as _:
+        with h5.File(outfile, "w") as _:
             pass
 
-    selection = determine_selection(eventsfile)
-    # MAKE THIS ACCEPT NON-MC STUFF
-    events = EventReader(eventsfile, selection, DataType.MC)
+    if eventsfile is not None:
+        selection = determine_selection(eventsfile)
+        events = EventReader(eventsfile, selection, DataType.MC)
 
     # Set the RNG seed
     for key in keys:
+        if eventsfile is None:
+            events = get_events(fluxfile, key)
         flux = get_event_flux(fluxfile, key)
         np.random.seed(seed)
         mjds = np.random.uniform(mjdmin, mjdmax, ndays)
@@ -122,8 +146,8 @@ def main(
             mjdmin=mjdmin,
             mjdmax=mjdmax,
             seed=seed,
-            dtstr=datetime.now().strftime("%B %d, %Y"),
-            eventsfile=eventsfile
+            dtstr=datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+            fluxfile=fluxfile
         )
         seed += 1
 
@@ -132,10 +156,6 @@ if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument(
         "--fluxfile",
-        required=True
-    )
-    parser.add_argument(
-        "--eventsfile",
         required=True
     )
     parser.add_argument(
@@ -167,14 +187,17 @@ if __name__=="__main__":
         default=1000,
         type=int
     )
+    parser.add_argument(
+        "--eventsfile",
+    )
     args = parser.parse_args()
     main(
         args.fluxfile,
-        args.eventsfile,
         args.outfile,
         args.seed,
         keys=args.keys,
         mjdmin=args.mjdmin,
         mjdmax=args.mjdmax,
-        ndays=args.ndays
+        ndays=args.ndays,
+        eventsfile=args.eventsfile
     )

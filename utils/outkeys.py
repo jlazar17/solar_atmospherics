@@ -35,20 +35,21 @@ l3_b_keys = ['ZTravel',
             'BayesRatio'
            ]
 
-l3_a_keys = ['ZTravel',
-            'oneweight',
-            'COGZ',
-            'COGZSigma',
-            'TrueEnergy',
-            'TrueZenith',
-            'TrueAzimuth',
-            'PrimaryType',
-            'RLogL',
-            'RecoAzimuth',
-            'RecoZenith',
-            'weights',
-            'QTot'
-           ]
+l3_a_keys = [
+    'ZTravel',
+    'oneweight',
+    'COGZ',
+    'COGZSigma',
+    'TrueEnergy',
+    'TrueZenith',
+    'TrueAzimuth',
+    'PrimaryType',
+    'RLogL',
+    'RecoAzimuth',
+    'RecoZenith',
+    'weights',
+    'QTot',
+]
 
 outkeys_dict = {
                 'l3_a':l3_a_keys,

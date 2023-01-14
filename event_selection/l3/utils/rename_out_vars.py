@@ -82,6 +82,7 @@ def prepare_l3_a_vars(frame):
         oneweight = frame.Get('Weight')
     # Thre is no truth in data, so we save NaN
     else:
+        import numpy as np
         e_true = np.nan
         zenith_true = np.nan
         azimuth_true = np.nan

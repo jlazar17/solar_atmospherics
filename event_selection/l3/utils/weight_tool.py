@@ -108,22 +108,26 @@ def weighter_corsika(frame):
     MCPrimary = frame["MCPrimary"]
     energy = MCPrimary.energy
     ptype = MCPrimary.type
-    placeholder = True
+    generator = None
     for DID in corsika_dids:
-        if(placeholder): 
+        if is None: 
             generator = gen_dict[DID];
-            #generator = weighting.from_simprod(DID) * simprod_nfiles[DID];
-            placeholder = False
         else: 
             generator += gen_dict[DID];
-            #generator += weighting.from_simprod(DID) * simprod_nfiles[DID];
-    flux=GaisserH4a()
-    #flux=Hoerandel5()
-    weights = flux(energy, ptype) / generator(energy, ptype)
-    if np.isnan(weights): weights=0.0;
-    frame['Weight']=dataclasses.I3Double(weights)
+    gaisser = GaisserH4a()
+    hoerandel = Hoerandel5()
+    gaisser_weights = gaisser(energy, ptype) / generator(energy, ptype)
+    hoerandel_weights = hoerandel(energy, ptype) / generator(energy, ptype)
+    if np.isnan(gaisser_weights):
+        weights=0.0;
+    frame['Weight']=dataclasses.I3Double(gaisser_weights)
+    frame['GaisserWeight']=dataclasses.I3Double(gaisser_weights)
+    frame['HoerandelWeight']=dataclasses.I3Double(hoerandel_weights)
     #do a little cleanup now
-    flux = 0; generator =0; weights = 0; MCPrimary = 0;
+    flux = 0
+    generator = 0
+    weights = 0
+    MCPrimary = 0
 
 #weight NuGen sample now! default value is mese 2 year flux
 #def flux_val(energy,norm=2.06, gamma=2.46): #MESE

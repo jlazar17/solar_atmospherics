@@ -65,17 +65,18 @@ def main(infile, outfile, level, bonus_outkeys=[]):
             "RLogL",
             "ZenithReco",
             "AzimuthReco",
-            # True quantities
-            "ETrue",
-            "ZenithTrue",
-            "AzimuthTrue",
-            "PrimaryType",
-            "OneWeight"
         ]
+        if not "exp" in infile:
+            outkeys += [
+                "ETrue",
+                "ZenithTrue",
+                "AzimuthTrue",
+                "PrimaryType",
+                "OneWeight"
+            ]
     else:
         raise RuntimeError(f"level {level} not implemented yet.")
-    for k in bonus_outkeys:
-        outkeys.append(k)
+    outkeys += bonus_outkeys
     tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
         ("tableservice",hdfwriter.I3HDFTableService(outfile)),
         ("SubEventStreams",["TTrigger"]),

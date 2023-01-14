@@ -34,12 +34,10 @@ def initialize_parser():
 
 
 
-def main(infiles, output_keys, fluxname, corsika_set, outfile="output.h5"):
+def main(infile, outfile, output_keys, fluxname, corsika_set):
     icetray.set_log_level(icetray.I3LogLevel.LOG_ERROR)
     tray = I3Tray()
     tray.AddModule("I3Reader","reader")(("FilenameList", self.infiles))
-    tray.AddModule(cut_bad_fits, 'bad_fit_cutter') # This should not be in here long term
-    tray.AddModule(l3b_cuts, 'l3_b_cutter') # This should not be in here long term
     tray.AddModule(rename_out_vars, geometry=None, fluxname=fluxname, corsika_set=corsika_set)
     tray.AddModule(tableio.I3TableWriter, "hdfwriter")(
             ("tableservice",hdfwriter.I3HDFTableService(self.outfile)),
