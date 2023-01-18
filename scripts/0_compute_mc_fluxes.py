@@ -3,7 +3,7 @@ import h5py as h5
 from glob import glob
 from tqdm import tqdm
 
-from solar_common.event_reader import EventReader, Selection, DataType
+from solar_common.event_reader import Selection, DataType, event_reader_from_file
 from solar_common.flux import SolarAtmSurfaceFlux
 
 def determine_selection(datafile: str) -> Selection:
@@ -25,7 +25,7 @@ def main(mcfile: str, outfile: str, force :bool=False) -> None:
     force: If True, all fluxes will be recaluclated even if extant
     """
     selection = determine_selection(mcfile)
-    events = EventReader(mcfile, selection, DataType.MC)
+    events = event_reader_from_file(mcfile, selection, DataType.MC)
     fs = sorted(glob(
         "/data//user/jlazar/solar/solar_WIMP_v2/data/solar_atm/PostPropagation/*"
     ))

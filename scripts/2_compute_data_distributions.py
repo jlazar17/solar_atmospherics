@@ -78,7 +78,8 @@ def main(
     selection = determine_selection(eventsfile)
     events = event_reader_from_file(eventsfile, selection, DataType.DATA)
     for _ in tqdm(range(niter)):
-        events.scramble_azimuth(seed=seed)
+        if scramble:
+            events.scramble_azimuth(seed=seed)
         dist = compute_distribution(events, sun) 
         save_output(
             outfile,

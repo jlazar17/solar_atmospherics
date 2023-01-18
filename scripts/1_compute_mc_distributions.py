@@ -4,9 +4,9 @@ import h5py as h5
 from typing import Iterable, Optional, Union
 from datetime import datetime
 
-from solar_common import sun, compute_average_distribution
+from solar_common import sun, compute_distribution
 from solar_common.flux import EventFlux, SkyDistribution
-from solar_common.event_reader import EventReader, Selection, DataType
+from solar_common.event_reader import EventReader, Selection, DataType, event_reader_from_file
 
 MJDMIN = 56_293 # Jan. 1 2013
 MJDMAX = 56_658.25 # Jan. 1 2014 + 0.25 days for stuff
@@ -53,10 +53,9 @@ def get_events(fluxfile: str, key: str) -> EventReader:
     events: EventReader object corresponding to flux
     """
     with h5.File(fluxfile, "r") as h5f:
-        print(h5f[key].attrs.keys())
         eventsfile = h5f[key].attrs["MC File"]
     selection = determine_selection(eventsfile)
-    events = EventReader(eventsfile, selection, DataType.MC)
+    events = event_reader_from_file(eventsfile, selection, DataType.MC)
     return events
     
 
@@ -96,7 +95,8 @@ def main(
     mjdmin: Optional[float] = MJDMIN,
     mjdmax: Optional[float] = MJDMAX,
     ndays: Optional[int] = 1_000,
-    eventsfile: Optional[Union[None, str]] = None
+    eventsfile: Optional[Union[None, str]] = None,
+    scramble: bool=False
 ) -> None:
     """Computes the analysis level distributions in \Delta\psi, E_{reco},
     and potentially other variables averaged over an input number
@@ -128,26 +128,30 @@ def main(
 
     if eventsfile is not None:
         selection = determine_selection(eventsfile)
-        events = EventReader(eventsfile, selection, DataType.MC)
+        events = event_reader_from_file(eventsfile, selection, DataType.MC)
+
 
     # Set the RNG seed
     for key in keys:
         if eventsfile is None:
             events = get_events(fluxfile, key)
+        if scramble:
+            events.scramble_azimuth(seed=seed)
         flux = get_event_flux(fluxfile, key)
         np.random.seed(seed)
         mjds = np.random.uniform(mjdmin, mjdmax, ndays)
-        avg = compute_average_distribution(events, sun, flux, mjds)
+        dist = compute_distribution(events, sun, flux=flux, mjds=mjds)
         save_output(
             outfile,
             key, 
-            avg,
+            dist,
             ndays=ndays,
             mjdmin=mjdmin,
             mjdmax=mjdmax,
             seed=seed,
             dtstr=datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-            fluxfile=fluxfile
+            fluxfile=fluxfile,
+            scramble=str(scramble)
         )
         seed += 1
 
@@ -190,6 +194,11 @@ if __name__=="__main__":
     parser.add_argument(
         "--eventsfile",
     )
+    parser.add_argument(
+        "--scramble",
+        action="store_true",
+        default=False
+    )
     args = parser.parse_args()
     main(
         args.fluxfile,
@@ -199,5 +208,6 @@ if __name__=="__main__":
         mjdmin=args.mjdmin,
         mjdmax=args.mjdmax,
         ndays=args.ndays,
-        eventsfile=args.eventsfile
+        eventsfile=args.eventsfile,
+        scramble=args.scramble
     )
