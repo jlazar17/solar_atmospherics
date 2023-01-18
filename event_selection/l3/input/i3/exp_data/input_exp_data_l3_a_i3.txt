@@ -1,1 +1,1 @@
-/data/user/jlazar/big_files/solar_atmospherics/input_exp_data_l3_a_i3.txt
+sdf
