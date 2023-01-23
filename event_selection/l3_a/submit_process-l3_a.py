@@ -51,7 +51,7 @@ xlines = [
 dagman = pycondor.Dagman("process-l3_a_dag", submit=submit, verbose=2)
 run = pycondor.Job(
     "process-l3_a", 
-    "/data/user/jlazar/solar/solar_atmospherics/event_selection/l3_a/process-l3_a.sh", 
+    "/data/user/imartinez-soler/solar/solar_atmospherics/event_selection/l3_a/process-l3_a.sh", 
     error=error, 
     output=output, 
     log=log, 
