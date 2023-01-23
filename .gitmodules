@@ -1,0 +1,3 @@
+[submodule "solar_common"]
+	path = solar_common
+	url = https://github.com/jlazar17/solar_common.git
