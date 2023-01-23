@@ -20,7 +20,7 @@ def initialize_parser():
         default = ""
     )
     parser.add_argument(
-        "--prefix"
+        "--prefix",
         dest = "prefix",
         default = "",
         type = str,
@@ -28,7 +28,7 @@ def initialize_parser():
     parser.add_argument(
         "-n",
         "--nmax",
-        dest = nmax,
+        dest = "nmax",
         default = 1000000,
         type = int
     )
@@ -47,7 +47,7 @@ def main(indir, outdir, prefix, nmax, track_progress=False):
         from tqdm import tqdm
         itr = tqdm(fs)
     else:
-        itr = fs``
+        itr = fs
     for f in itr:
         h5f = h5.File(f, "r")
         keys = h5f.keys()
