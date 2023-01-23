@@ -64,7 +64,8 @@ def initialize_parser():
         "--no_cut",
         dest="no_cut",
         action="store_true",
-        default=False
+        #default=False
+        default=True
     )
     args = parser.parse_args()
     return args
@@ -257,8 +258,12 @@ def main(
     tray.Finish()
 
 if __name__=="__main__":
-    from memory_profiler import memory_usage
-    from solar_atmospherics.event_selection.utils import make_outfile_name, figure_out_gcd
+    #from memory_profiler import memory_usage
+    #from solar_atmospherics.event_selection.utils import make_outfile_name, figure_out_gcd
+
+    from solar_atmospherics.modules import figure_out_gcd
+    from solar_atmospherics.event_selection.l3_a.make_outfile_name import make_outfile_name    
+
     args = initialize_parser()
 
     # Get a list of infiles
@@ -284,7 +289,8 @@ if __name__=="__main__":
 
     #  Determine the outfile name
     if not args.outfile:
-        outfiles = [make_outfile_name(i, outdir=args.outdir, prefix="Level3a_", strip="Level2_") for i in infiles]
+        #outfiles = [make_outfile_name(i, outdir=args.outdir, prefix="Level3a_", strip="Level2_") for i in infiles]
+        outfiles = [make_outfile_name(i, outdir=args.outdir) for i in infiles]
     else:
         outfiles = args.outfile
     outfiles = [o.replace('JLevel', 'JLevel_%s' % filetype) for o in outfiles]
@@ -316,6 +322,6 @@ if __name__=="__main__":
                 main(inf,  outf, gcd)
             t1 = time()
         print(t1-t0)
-        mem_usage = memory_usage(f)
+        #mem_usage = memory_usage(f)
         print('Maximum memory usage: %s' % max(mem_usage))
 
